@@ -1,7 +1,27 @@
 var React = require('react');
 var connect = require('react-redux').connect;
-var LMap = require('../../../components/map/leaflet/Map');
-var LLayer = require('../../../components/map/leaflet/Layer');
+var LMap = require('../../../components/map/openlayers/Map');
+var LLayer = require('../../../components/map/openlayers/Layer');
+// var Feature = require('../../../components/map/openlayers/Feature');
+// var Locate = require('../../../components/map/openlayers/Locate');
+// var MeasurementSupport = require('../../../components/map/openlayers/MeasurementSupport');
+// var Overview = require('../../../components/map/openlayers/Overview');
+// var ScaleBar = require('../../../components/map/openlayers/ScaleBar');
+// var DrawSupport = require('../../../components/map/openlayers/DrawSupport');
+// var HighlightFeatureSupport = require('../../../components/map/openlayers/HighlightFeatureSupport');
+
+// const {changeMapView, clickOnMap} = require('../../../actions/map');
+// const {layerLoading, layerLoad, invalidLayer} = require('../../../actions/layers');
+// const {changeMousePosition} = require('../../../actions/mousePosition');
+// const {changeMeasurementState} = require('../../../actions/measurement');
+// const {changeLocateState, onLocateError} = require('../../../actions/locate');
+// const {changeDrawingStatus, endDrawing} = require('../../../actions/draw');
+// const {updateHighlighted} = require('../../../actions/highlight');
+
+// const {connect} = require('react-redux');
+// const assign = require('object-assign');
+
+// const Empty = () => { return <span/>; };
 
 var QWC2 = React.createClass({
     propTypes: {
@@ -32,8 +52,8 @@ var QWC2 = React.createClass({
 });
 
 // include support for OSM and WMS layers
-require('../../../components/map/leaflet/plugins/OSMLayer');
-require('../../../components/map/leaflet/plugins/WMSLayer');
+require('../../../components/map/openlayers/plugins/OSMLayer');
+require('../../../components/map/openlayers/plugins/WMSLayer');
 
 // connect Redux store slice with map configuration
 module.exports = connect((state) => {
