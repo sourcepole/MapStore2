@@ -2,6 +2,7 @@ var React = require('react');
 var connect = require('react-redux').connect;
 var LMap = require('../../../components/map/openlayers/Map');
 var LLayer = require('../../../components/map/openlayers/Layer');
+require('../../../components/map/openlayers/plugins/index');
 // var Feature = require('../../../components/map/openlayers/Feature');
 // var Locate = require('../../../components/map/openlayers/Locate');
 // var MeasurementSupport = require('../../../components/map/openlayers/MeasurementSupport');
