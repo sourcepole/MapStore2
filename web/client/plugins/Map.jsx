@@ -38,7 +38,7 @@ const MapPlugin = React.createClass({
             zoomControl: true,
             mapLoadingMessage: "map.loading",
             loadingSpinner: true,
-            tools: ['measurement', 'locate', 'overview', 'scalebar'],
+            tools: ['measurement', 'locate', 'overview', 'scalebar', 'printframe'],
             options: {},
             toolsOptions: {
                 measurement: {},

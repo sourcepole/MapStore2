@@ -63,6 +63,13 @@ module.exports = (mapType, actions) => {
     const HighlightSupport = connect((state) => (
         state.highlight || {}), {updateHighlighted})( components.HighlightFeatureSupport || Empty);
 
+    const PrintFrame = connect(state => ({
+        center: state.printframe ? state.printframe.center : null,
+        scale: state.printframe ? state.printframe.scale : 0,
+        widthmm: state.printframe ? state.printframe.widthmm : 0,
+        heightmm: state.printframe ? state.printframe.heightmm : 0
+    }), {})(components.PrintFrame || Empty);
+
     require('../../components/map/' + mapType + '/plugins/index');
 
     return {
@@ -75,7 +82,8 @@ module.exports = (mapType, actions) => {
             overview: components.Overview || Empty,
             scalebar: components.ScaleBar || Empty,
             draw: DrawSupport,
-            highlight: HighlightSupport
+            highlight: HighlightSupport,
+            printframe: PrintFrame
         }
     };
 };
