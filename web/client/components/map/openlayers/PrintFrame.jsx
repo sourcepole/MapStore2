@@ -34,12 +34,18 @@ const PrintFrame = React.createClass({
     componentWillReceiveProps(newProps) {
         let newState = this.getInitialState();
         if(newProps.widthmm !== 0 && newProps.heightmm !== 0) {
+            let angle = -newProps.map.getView().getRotation();
+            let cosa = Math.cos(angle);
+            let sina = Math.sin(angle);
+
             let mapProj = newProps.map.getView().getProjection().getCode();
             let center = CoordinatesUtils.reproject(newProps.center, newProps.center.crs, mapProj);
             let width = newProps.scale * newProps.widthmm / 1000.;
             let height = newProps.scale * newProps.heightmm / 1000.;
-            let mapp1 = [center.x - .5 * width, center.y - .5 * height];
-            let mapp2 = [center.x + .5 * width, center.y + .5 * height];
+            let mapp1 = [center.x - .5 * width * cosa - .5 * height * sina,
+                         center.y + .5 * width * sina - .5 * height * cosa];
+            let mapp2 = [center.x + .5 * width * cosa + .5 * height * sina,
+                         center.y - .5 * width * sina + .5 * height * cosa];
             let pixp1 = newProps.map.getPixelFromCoordinate(mapp1);
             let pixp2 = newProps.map.getPixelFromCoordinate(mapp2);
             newState = {
