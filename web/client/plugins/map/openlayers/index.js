@@ -15,6 +15,5 @@ module.exports = {
     Overview: require('../../../components/map/openlayers/Overview'),
     ScaleBar: require('../../../components/map/openlayers/ScaleBar'),
     DrawSupport: require('../../../components/map/openlayers/DrawSupport'),
-    HighlightFeatureSupport: require('../../../components/map/openlayers/HighlightFeatureSupport'),
-    PrintFrame: require('../../../components/map/openlayers/PrintFrame')
+    HighlightFeatureSupport: require('../../../components/map/openlayers/HighlightFeatureSupport')
 };
