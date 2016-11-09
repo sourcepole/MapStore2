@@ -316,7 +316,7 @@ var OpenlayersMap = React.createClass({
         if (Math.round(newProps.zoom) !== this.props.zoom) {
             view.setZoom(Math.round(newProps.zoom));
         }
-        if(newProps.bbox.rotation !== this.props.bbox.rotation) {
+        if(newProps.bbox && newProps.bbox.rotation !== undefined && newProps.bbox.rotation !== this.props.bbox.rotation) {
             view.setRotation(newProps.bbox.rotation);
         }
     },
