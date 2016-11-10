@@ -22,6 +22,7 @@ function changeMeasurementState(measureState) {
         areaMeasureEnabled: measureState.areaMeasureEnabled,
         bearingMeasureEnabled: measureState.bearingMeasureEnabled,
         geomType: measureState.geomType,
+        point: measureState.point,
         len: measureState.len,
         area: measureState.area,
         bearing: measureState.bearing,
