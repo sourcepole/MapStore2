@@ -104,7 +104,9 @@ const Identify = React.createClass({
     },
     componentWillReceiveProps(newProps) {
         if (this.needsRefresh(newProps)) {
-            this.props.purgeResults();
+            if(newProps.point.modifiers.ctrl !== true) {
+                this.props.purgeResults();
+            }
             const queryableLayers = newProps.layers.filter(newProps.queryableLayersFilter);
             queryableLayers.forEach((layer) => {
                 const {url, request, metadata} = this.props.buildRequest(layer, newProps);
