@@ -96,7 +96,7 @@ const MeasurementSupport = React.createClass({
             })
         });
 
-        // update measurement results for every new vertex drawn
+        this.props.map.on('pointermove', this.updateMeasurementResults, this);
         this.props.map.on('click', this.updateMeasurementResults, this);
 
         draw.on('drawstart', function(evt) {
@@ -126,11 +126,13 @@ const MeasurementSupport = React.createClass({
         var newMeasureState;
 
         if (this.props.measurement.geomType === 'Bearing' &&
-                sketchCoords.length > 2) {
-            this.drawInteraction.finishDrawing();
+                sketchCoords.length > 1) {
             // calculate the azimuth as base for bearing information
             bearing = CoordinatesUtils.calculateAzimuth(
                 sketchCoords[0], sketchCoords[1], this.props.projection);
+            if(sketchCoords.length > 2) {
+                this.drawInteraction.finishDrawing();
+            }
         }
 
         newMeasureState = {
