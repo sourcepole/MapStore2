@@ -121,6 +121,9 @@ const MeasurementSupport = React.createClass({
         }
     },
     updateMeasurementResults() {
+        if(!this.sketchFeature) {
+            return;
+        }
         var bearing = 0;
         var sketchCoords = this.sketchFeature.getGeometry().getCoordinates();
         var newMeasureState;
