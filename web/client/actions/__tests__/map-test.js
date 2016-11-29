@@ -13,12 +13,14 @@ var {
     CHANGE_MOUSE_POINTER,
     CHANGE_ZOOM_LVL,
     CHANGE_MAP_CRS,
+    CHANGE_MAP_SCALES,
     CHANGE_MAP_STYLE,
     changeMapView,
     clickOnMap,
     changeMousePointer,
     changeZoomLevel,
     changeMapCrs,
+    changeMapScales,
     changeMapStyle
 } = require('../map');
 
@@ -75,6 +77,15 @@ describe('Test correctness of the map actions', () => {
         expect(retval).toExist();
         expect(retval.type).toBe(CHANGE_MAP_CRS);
         expect(retval.crs).toBe(testVal);
+    });
+
+    it('changeMapScales', () => {
+        const testScales = [100000, 50000, 25000, 10000, 5000];
+        const retval = changeMapScales(testScales);
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(CHANGE_MAP_SCALES);
+        expect(retval.scales).toEqual(testScales);
     });
 
     it('changeMapStyle', () => {
