@@ -27,7 +27,6 @@ const {RESET_CONTROLS} = require('../actions/controls');
 
 const assign = require('object-assign');
 const {head} = require('lodash');
-const {inside} = require('turf');
 
 function receiveResponse(state, action, type) {
     const request = head((state.requests || []).filter((req) => req.reqId === action.reqId));
@@ -111,6 +110,7 @@ function mapInfo(state = {}, action) {
             });
         }
         case GET_VECTOR_INFO: {
+            const {inside} = require('turf');
             const point = {
               "type": "Feature",
               "properties": {},
