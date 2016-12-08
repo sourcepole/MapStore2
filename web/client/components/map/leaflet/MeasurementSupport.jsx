@@ -66,15 +66,12 @@ const MeasurementSupport = React.createClass({
         if(!this.drawing || !this.drawControl) {
             return;
         }
-        let point = null;
         let distance = 0;
         let area = 0;
         let bearing = 0;
 
         let currentLatLng = this.drawControl._currentLatLng;
-        if (this.props.measurement.geomType === 'Point' && this.drawControl._markers && this.drawControl._markers.length > 0) {
-            point = this.drawControl._markers[0].getLatLng();
-        } else if (this.props.measurement.geomType === 'LineString' && this.drawControl._markers && this.drawControl._markers.length > 0) {
+        if (this.props.measurement.geomType === 'LineString' && this.drawControl._markers && this.drawControl._markers.length > 0) {
             // calculate length
 			let previousLatLng = this.drawControl._markers[this.drawControl._markers.length - 1].getLatLng();
 			distance = this.drawControl._measurementRunningTotal + currentLatLng.distanceTo(previousLatLng);
@@ -100,18 +97,14 @@ const MeasurementSupport = React.createClass({
             bearing = CoordinatesUtils.calculateAzimuth(coords1, coords2, this.props.projection);
         }
 
-        let newMeasureState = {
-            lineMeasureEnabled: this.props.measurement.lineMeasureEnabled,
-            areaMeasureEnabled: this.props.measurement.areaMeasureEnabled,
-            bearingMeasureEnabled: this.props.measurement.bearingMeasureEnabled,
-            geomType: this.props.measurement.geomType,
-            point: point,
-            len: distance,
-            area: area,
-            bearing: bearing,
-            lenUnit: this.props.measurement.lenUnit,
-            areaUnit: this.props.measurement.areaUnit
-        };
+        let newMeasureState = assign({}, this.props.measurement,
+            {
+                point: null, // Point is set in onDraw.created
+                len: distance,
+                area: area,
+                bearing: bearing
+            }
+        );
         this.props.changeMeasurementState(newMeasureState);
     },
     mapClickHandler: function() {
