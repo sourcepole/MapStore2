@@ -63,7 +63,7 @@ const MeasurementSupport = React.createClass({
         return null;
     },
     updateMeasurementResults() {
-        if(!this.drawing) {
+        if(!this.drawing || !this.drawControl) {
             return;
         }
         let point = null;
