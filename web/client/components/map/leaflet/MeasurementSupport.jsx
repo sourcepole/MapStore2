@@ -7,6 +7,7 @@
  */
 
 const React = require('react');
+const assign = require('object-assign');
 var L = require('leaflet');
 var CoordinatesUtils = require('../../../utils/CoordinatesUtils');
 
@@ -49,6 +50,13 @@ const MeasurementSupport = React.createClass({
             this.props.map.addLayer(evt.layer);
             // preserve the currently created layer to remove it later on
             this.lastLayer = evt.layer;
+
+            if (this.props.measurement.geomType === 'Point') {
+                let pos = this.drawControl._marker.getLatLng();
+                let point = {x: pos.lng, y: pos.lat, srs: 'EPSG:4326'};
+                let newMeasureState = assign({}, this.props.measurement, {point: point});
+                this.props.changeMeasurementState(newMeasureState);
+            }
         }
     },
     render() {
@@ -105,6 +113,7 @@ const MeasurementSupport = React.createClass({
                 areaMeasureEnabled: this.props.measurement.areaMeasureEnabled,
                 bearingMeasureEnabled: this.props.measurement.bearingMeasureEnabled,
                 geomType: this.props.measurement.geomType,
+                point: this.props.measurement.geomType === 'Point' ? this.drawControl._markers[0].getLatLng() : null,
                 len: this.props.measurement.geomType === 'LineString' ? this.drawControl._measurementRunningTotal : 0,
                 area: this.props.measurement.geomType === 'Polygon' ? area : 0,
                 bearing: bearing
@@ -120,7 +129,11 @@ const MeasurementSupport = React.createClass({
         this.props.map.on('draw:drawstart', this.onDraw.drawStart, this);
         this.props.map.on('click', this.mapClickHandler, this);
 
-        if (newProps.measurement.geomType === 'LineString' ||
+        if (newProps.measurement.geomType === 'Point') {
+            this.drawControl = new L.Draw.Marker(this.props.map, {
+                repeatMode: false
+            });
+        } else if (newProps.measurement.geomType === 'LineString' ||
                 newProps.measurement.geomType === 'Bearing') {
             this.drawControl = new L.Draw.Polyline(this.props.map, {
                 shapeOptions: {
