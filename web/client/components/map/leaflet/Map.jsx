@@ -17,6 +17,7 @@ let LeafletMap = React.createClass({
     propTypes: {
         id: React.PropTypes.string,
         center: ConfigUtils.PropTypes.center,
+        bbox: React.PropTypes.object,
         zoom: React.PropTypes.number.isRequired,
         mapStateSource: ConfigUtils.PropTypes.mapStateSource,
         style: React.PropTypes.object,
@@ -92,6 +93,11 @@ let LeafletMap = React.createClass({
           Math.round(this.props.zoom));
 
         this.map = map;
+
+        if(this.props.bbox && this.props.bbox.bounds) {
+            let bounds = this.props.bbox.bounds;
+            this.map.fitBounds([[bounds.miny, bounds.minx], [bounds.maxy, bounds.maxx]]);
+        }
 
 
         this.map.on('moveend', this.updateMapInfoState);

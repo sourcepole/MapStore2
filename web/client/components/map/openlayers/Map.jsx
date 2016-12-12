@@ -90,12 +90,16 @@ var OpenlayersMap = React.createClass({
               collapsible: false
             })
         }, this.props.mapOptions.controls));
+        let bounds = undefined;
+        if(this.props.bbox && this.props.bbox.bounds) {
+            bounds = CoordinatesUtils.reprojectBbox(this.props.bbox.bounds, this.props.bbox.crs, this.props.projection);
+        }
         let map = new ol.Map({
           layers: [],
           controls: controls,
           interactions: interactions,
           target: this.props.id,
-          view: this.createView(center, Math.round(this.props.zoom), this.props.projection, this.props.mapOptions && this.props.mapOptions.view)
+          view: this.createView(center, bounds, Math.round(this.props.zoom), this.props.projection, this.props.mapOptions && this.props.mapOptions.view)
         });
         map.on('moveend', () => {
             let view = map.getView();
@@ -202,7 +206,7 @@ var OpenlayersMap = React.createClass({
                 this.props.center.x,
                 this.props.center.y
             ], 'EPSG:4326', newProps.projection);
-            this.map.setView(this.createView(center, newProps.zoom, newProps.projection, newProps.mapOptions && newProps.mapOptions.view));
+            this.map.setView(this.createView(center, undefined, newProps.zoom, newProps.projection, newProps.mapOptions && newProps.mapOptions.view));
             // We have to force ol to drop tile and reload
             this.map.getLayers().forEach((l) => {
                 let source = l.getSource();
@@ -298,11 +302,12 @@ var OpenlayersMap = React.createClass({
         const newResolutions = newProps.mapOptions && newProps.mapOptions.view ? newProps.mapOptions.view.resolutions : undefined;
         return !isEqual(resolutions, newResolutions);
     },
-    createView(center, zoom, projection, options) {
+    createView(center, bounds, zoom, projection, options) {
         const viewOptions = assign({}, {
             projection: projection,
-            center: [center.x, center.y],
-            zoom: zoom
+            center: bounds ? [0.5 * (bounds[0] + bounds[2]), 0.5 * (bounds[1] + bounds[3])] : [center.x, center.y],
+            zoom: zoom,
+            extent: bounds
         }, options || {});
         return new ol.View(viewOptions);
     },
@@ -341,7 +346,7 @@ var OpenlayersMap = React.createClass({
         });
         mapUtils.registerHook(mapUtils.COMPUTE_BBOX_HOOK, (center, zoom) => {
             var olCenter = CoordinatesUtils.reproject([center.x, center.y], 'EPSG:4326', this.props.projection);
-            let view = this.createView(olCenter, zoom, this.props.projection, this.props.mapOptions && this.props.mapOptions.view);
+            let view = this.createView(olCenter, undefined, zoom, this.props.projection, this.props.mapOptions && this.props.mapOptions.view);
             let size = this.map.getSize();
             let bbox = view.calculateExtent(size);
             return {
