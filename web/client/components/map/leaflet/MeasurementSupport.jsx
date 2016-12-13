@@ -167,6 +167,7 @@ const MeasurementSupport = React.createClass({
             this.props.map.off('draw:created', this.onDraw.created, this);
             this.props.map.off('draw:drawstart', this.onDraw.drawStart, this);
             this.props.map.off('click', this.mapClickHandler, this);
+            this.props.map.off('mousemove', this.updateMeasurementResults, this);
         }
     }
 });

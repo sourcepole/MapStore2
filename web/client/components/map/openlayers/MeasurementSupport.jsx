@@ -118,6 +118,7 @@ const MeasurementSupport = React.createClass({
             this.props.map.removeLayer(this.measureLayer);
             this.sketchFeature = null;
             this.props.map.un('click', this.updateMeasurementResults, this);
+            this.props.map.un('pointermove', this.updateMeasurementResults, this);
         }
     },
     updateMeasurementResults() {
