@@ -14,7 +14,8 @@ const initialState = {
     drawStatus: null,
     drawOwner: null,
     drawMethod: null,
-    features: []
+    features: [],
+    selectedFeature: null
 };
 
 function draw(state = initialState, action) {
@@ -24,7 +25,8 @@ function draw(state = initialState, action) {
                 drawStatus: action.status,
                 drawOwner: action.owner,
                 drawMethod: action.method,
-                features: action.features
+                features: action.features,
+                selectedFeature: action.selectedFeature
             });
         default:
             return state;

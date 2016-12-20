@@ -8,7 +8,7 @@
 
 const React = require('react');
 const ol = require('openlayers');
-
+const uuid = require('uuid');
 const assign = require('object-assign');
 
 const DrawSupport = React.createClass({
@@ -38,7 +38,7 @@ const DrawSupport = React.createClass({
                 this.addLayer(newProps);
                 break;
             case ("start"):
-                this.addDrawInteraction(newProps);
+                this.addInteractions(newProps);
                 break;
             case ("stop"):
                 this.removeDrawInteraction();
@@ -49,7 +49,7 @@ const DrawSupport = React.createClass({
             case ("clean"):
                 this.clean();
                 break;
-            default :
+            default:
                 return;
         }
     },
@@ -104,22 +104,21 @@ const DrawSupport = React.createClass({
             this.addLayer(newProps);
         } else {
             this.drawSource.clear();
-            newProps.features.map((geom) => {
-                let geometry = geom.radius && geom.center ?
-                    ol.geom.Polygon.fromCircle(new ol.geom.Circle([geom.center.x, geom.center.y], geom.radius), 100) : new ol.geom.Polygon(geom.coordinates);
+            this.selectInteraction.getFeatures().clear();
 
+            newProps.features.map((geom) => {
                 let feature = new ol.Feature({
-                    geometry: geometry
+                    id: geom.id,
+                    geometry: new ol.geom[geom.type](geom.coordinates)
                 });
 
                 this.drawSource.addFeature(feature);
             });
+
+            this.drawSource.changed();
         }
     },
-    addDrawInteraction: function(newProps) {
-        let draw;
-        let geometryType = newProps.drawMethod;
-
+    addInteractions: function(newProps) {
         if (!this.drawLayer) {
             this.addLayer(newProps);
         }
@@ -128,90 +127,113 @@ const DrawSupport = React.createClass({
             this.removeDrawInteraction();
         }
 
-        let drawBaseProps = {
-            source: this.drawSource,
-            type: /** @type {ol.geom.GeometryType} */ geometryType,
-            style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 255, 255, 0.2)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: 'rgba(0, 0, 0, 0.5)',
-                    lineDash: [10, 10],
-                    width: 2
-                }),
-                image: new ol.style.Circle({
-                    radius: 5,
-                    stroke: new ol.style.Stroke({
-                        color: 'rgba(0, 0, 0, 0.7)'
-                    }),
-                    fill: new ol.style.Fill({
-                        color: 'rgba(255, 255, 255, 0.2)'
-                    })
-                })
-            }),
-            condition: ol.events.condition.always
-        };
+        this.drawInteraction = new ol.interaction.Draw(this.drawPropertiesForGeometryType(newProps.drawMethod));
 
-        // Prepare the properties for the BBOX drawing
-        let roiProps = {};
-        if (geometryType === "BBOX") {
-            roiProps.type = "LineString";
-            roiProps.maxPoints = 2;
-            roiProps.geometryFunction = function(coordinates, geometry) {
-                let geom = geometry;
-                if (!geom) {
-                    geom = new ol.geom.Polygon(null);
-                }
+        this.drawInteraction.on('drawstart', function(evt) {
+            this.sketchFeature = evt.feature;
+            this.selectInteraction.getFeatures().clear();
+            this.selectInteraction.setActive(false);
+        }, this);
 
-                let start = coordinates[0];
-                let end = coordinates[1];
-                geom.setCoordinates([
-                  [start, [start[0], end[1]], end, [end[0], start[1]], start]
-                ]);
+        this.drawInteraction.on('drawend', function(evt) {
+            this.sketchFeature = evt.feature;
+            this.sketchFeature.set('id', uuid.v1());
 
-                return geom;
-            };
-        } else if (geometryType === "Circle") {
-            roiProps.maxPoints = 100;
-            roiProps.geometryFunction = ol.interaction.Draw.createRegularPolygon(roiProps.maxPoints);
+            let feature = this.featureToObject(this.sketchFeature);
+
+            this.props.onEndDrawing(feature, this.props.drawOwner);
+            this.props.onChangeDrawingStatus('stop', this.props.drawMethod, this.props.drawOwner, this.props.features.concat([feature]));
+
+            this.selectInteraction.setActive(true);
+        }, this);
+
+        this.props.map.addInteraction(this.drawInteraction);
+
+        if (!this.selectInteraction) {
+          this.selectInteraction = new ol.interaction.Select({layers: [this.drawLayer]});
+          this.selectInteraction.on('select', function(event) {
+            let selectedFeature = event.selected.length > 0 ? this.featureToObject(event.selected[0]) : null;
+            this.props.onChangeDrawingStatus('select', null, this.props.drawOwner, this.props.features, selectedFeature);
+          }.bind(this));
+          this.props.map.addInteraction(this.selectInteraction);
         }
 
-        let drawProps = assign({}, drawBaseProps, roiProps);
+        if (!this.translateInteraction) {
+          this.translateInteraction = new ol.interaction.Translate({features: this.selectInteraction.getFeatures()});
+          this.props.map.addInteraction(this.translateInteraction);
+        }
 
-        // create an interaction to draw with
-        draw = new ol.interaction.Draw(drawProps);
+        if (!this.modifyInteraction) {
+          this.modifyInteraction = new ol.interaction.Modify({features: this.selectInteraction.getFeatures()});
+          this.props.map.addInteraction(this.modifyInteraction);
+        }
+    },
+    drawPropertiesForGeometryType(geometryType) {
+      let drawBaseProps = {
+          source: this.drawSource,
+          type: /** @type {ol.geom.GeometryType} */ geometryType,
+          style: new ol.style.Style({
+              fill: new ol.style.Fill({
+                  color: 'rgba(255, 255, 255, 0.2)'
+              }),
+              stroke: new ol.style.Stroke({
+                  color: 'rgba(0, 0, 0, 0.5)',
+                  lineDash: [10, 10],
+                  width: 2
+              }),
+              image: new ol.style.Circle({
+                  radius: 5,
+                  stroke: new ol.style.Stroke({
+                      color: 'rgba(0, 0, 0, 0.7)'
+                  }),
+                  fill: new ol.style.Fill({
+                      color: 'rgba(255, 255, 255, 0.2)'
+                  })
+              })
+          }),
+          condition: ol.events.condition.always
+      };
 
-        draw.on('drawstart', function(evt) {
-            this.sketchFeature = evt.feature;
-            this.drawSource.clear();
-        }, this);
+      // Prepare the properties for the BBOX drawing
+      let roiProps = {};
+      if (geometryType === "BBOX") {
+          roiProps.type = "LineString";
+          roiProps.maxPoints = 2;
+          roiProps.geometryFunction = function(coordinates, geometry) {
+              let geom = geometry;
+              if (!geom) {
+                  geom = new ol.geom.Polygon(null);
+              }
 
-        draw.on('drawend', function(evt) {
-            this.sketchFeature = evt.feature;
-            let drawnGeometry = this.sketchFeature.getGeometry();
+              let start = coordinates[0];
+              let end = coordinates[1];
+              geom.setCoordinates([
+                [start, [start[0], end[1]], end, [end[0], start[1]], start]
+              ]);
 
-            let extent = drawnGeometry.getExtent();
-            let center = ol.extent.getCenter(drawnGeometry.getExtent());
-            let coordinates = drawnGeometry.getCoordinates();
-            let radius = Math.sqrt(Math.pow(center[0] - coordinates[0][0][0], 2) + Math.pow(center[1] - coordinates[0][0][1], 2));
+              return geom;
+          };
+      } else if (geometryType === "Circle") {
+          roiProps.maxPoints = 100;
+          roiProps.geometryFunction = ol.interaction.Draw.createRegularPolygon(roiProps.maxPoints);
+      }
 
-            let geometry = {
-                type: drawnGeometry.getType(),
-                extent: extent,
-                center: center,
-                coordinates: coordinates,
-                radius: radius,
-                projection: this.props.map.getView().getProjection().getCode()
-            };
+      return assign({}, drawBaseProps, roiProps);
+    },
+    featureToObject: function(feature) {
+      let geometry = feature.getGeometry(),
+          extent = geometry.getExtent(),
+          center = ol.extent.getCenter(geometry.getExtent()),
+          coordinates = geometry.getCoordinates();
 
-            this.props.onEndDrawing(geometry, this.props.drawOwner);
-            this.props.onChangeDrawingStatus('stop', this.props.drawMethod, this.props.drawOwner);
-        }, this);
-
-        this.props.map.addInteraction(draw);
-        this.drawInteraction = draw;
-        this.drawSource.clear();
+      return {
+          id: feature.get('id'),
+          type: geometry.getType(),
+          extent: extent,
+          center: center,
+          coordinates: coordinates,
+          projection: this.props.map.getView().getProjection().getCode()
+      };
     },
     removeDrawInteraction: function() {
         if (this.drawInteraction !== null) {
