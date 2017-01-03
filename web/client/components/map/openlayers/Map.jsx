@@ -306,6 +306,9 @@ var OpenlayersMap = React.createClass({
             center: [center.x, center.y],
             zoom: zoom
         }, options || {});
+        if(this.props.maxExtent) {
+            ol.proj.get(projection).setExtent(this.props.maxExtent);
+        }
         return new ol.View(viewOptions);
     },
     _updateMapPositionFromNewProps(newProps) {
