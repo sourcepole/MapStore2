@@ -75,6 +75,7 @@ const MapPlugin = React.createClass({
                         geometry={feature.geometry}
                         msId={feature.id}
                         featuresCrs={ layer.featuresCrs || 'EPSG:4326' }
+                        layerCrs={layer.crs || 'EPSG:3857'}
                         // FEATURE STYLE OVERWRITE LAYER STYLE
                         style={ feature.style || layer.style || null }/>
                 );
