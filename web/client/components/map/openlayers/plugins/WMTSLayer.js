@@ -34,7 +34,6 @@ function getWMSURLs( urls ) {
 
 Layers.registerType('wmts', {
     create: (options) => {
-        console.log("Create");
         const urls = getWMSURLs(isArray(options.url) ? options.url : [options.url]);
         const queryParameters = wmtsToOpenlayersOptions(options) || {};
         var projection = ol.proj.get(options.projection);
@@ -46,6 +45,7 @@ Layers.registerType('wmts', {
         }
         return new ol.layer.Tile({
             opacity: options.opacity !== undefined ? options.opacity : 1,
+            visible: options.visibility !== false,
             source: new ol.source.WMTS(objectAssign({
               urls: urls,
               layer: options.name,
