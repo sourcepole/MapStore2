@@ -38,8 +38,9 @@ Layers.registerType('wmts', {
         const queryParameters = wmtsToOpenlayersOptions(options) || {};
         var projection = ol.proj.get(options.projection);
         urls.forEach(url => SecurityUtils.addAuthenticationParameter(url, queryParameters));
-        let matrixIds = new Array(22);
-        for (let z = 0; z < 22; ++z) {
+        let resolutions = options.resolutions || mapUtils.getResolutions()
+        let matrixIds = new Array(options.resolutions.length);
+        for (let z = 0; z < options.resolutions.length; ++z) {
         // generate matrixIds arrays for this WMTS
             matrixIds[z] = options.tileMatrixPrefix + z;
         }
@@ -52,7 +53,7 @@ Layers.registerType('wmts', {
               matrixSet: options.tileMatrixSet,
               tileGrid: new ol.tilegrid.WMTS({
                 origin: [options.originX, options.originY],
-                resolutions: options.resolutions || mapUtils.getResolutions(),
+                resolutions: resolutions,
                 matrixIds: matrixIds
               }),
               style: '',
