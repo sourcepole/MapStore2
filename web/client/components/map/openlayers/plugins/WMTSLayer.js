@@ -54,7 +54,8 @@ Layers.registerType('wmts', {
               tileGrid: new ol.tilegrid.WMTS({
                 origin: [options.originX, options.originY],
                 resolutions: resolutions,
-                matrixIds: matrixIds
+                matrixIds: matrixIds,
+                tileSize: options.tileSize || [256, 256]
               }),
               style: '',
               wrapX: true,
