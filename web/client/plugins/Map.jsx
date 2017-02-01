@@ -66,6 +66,7 @@ const MapPlugin = React.createClass({
         }
     },
     renderLayerContent(layer) {
+        const projection = this.props.map.projection || 'EPSG:3857';
         if (layer.features && layer.type === "vector") {
             return layer.features.map( (feature) => {
                 return (
@@ -74,8 +75,8 @@ const MapPlugin = React.createClass({
                         type={feature.type}
                         geometry={feature.geometry}
                         msId={feature.id}
-                        featuresCrs={ layer.featuresCrs || 'EPSG:4326' }
-                        layerCrs={layer.crs || 'EPSG:3857'}
+                        featuresCrs={layer.featuresCrs || 'EPSG:4326'}
+                        layerCrs={layer.crs || projection}
                         // FEATURE STYLE OVERWRITE LAYER STYLE
                         style={ feature.style || layer.style || null }/>
                 );
