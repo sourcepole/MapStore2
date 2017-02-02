@@ -238,6 +238,8 @@ const DrawSupport = React.createClass({
       return assign({}, drawBaseProps, roiProps);
     },
     removeInteractions: function() {
+      this.removeDrawInteraction();
+
       if (this.selectInteraction) {
         this.props.map.removeInteraction(this.drawInteraction);
       }
