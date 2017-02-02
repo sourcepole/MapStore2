@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const {CHANGE_DRAWING_STATUS} = require('../actions/draw');
+const {CHANGE_DRAWING_STATUS, SET_CURRENT_STYLE} = require('../actions/draw');
 
 const assign = require('object-assign');
 
@@ -14,8 +14,7 @@ const initialState = {
     drawStatus: null,
     drawOwner: null,
     drawMethod: null,
-    features: [],
-    selectedFeature: null
+    features: []
 };
 
 function draw(state = initialState, action) {
@@ -25,8 +24,11 @@ function draw(state = initialState, action) {
                 drawStatus: action.status,
                 drawOwner: action.owner,
                 drawMethod: action.method,
-                features: action.features,
-                selectedFeature: action.selectedFeature
+                features: action.features
+            });
+        case SET_CURRENT_STYLE:
+            return assign({}, state, {
+                currentStyle: action.currentStyle
             });
         default:
             return state;

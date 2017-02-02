@@ -33,71 +33,64 @@ const DrawSupport = React.createClass({
         };
     },
     componentWillReceiveProps(newProps) {
-        switch (newProps.drawStatus) {
-            case ("create"):
-                this.addLayer(newProps);
-                break;
-            case ("start"):
-                this.addInteractions(newProps);
-                break;
-            case ("stop"):
-                this.removeDrawInteraction();
-                break;
-            case ("replace"):
-                this.replaceFeatures(newProps);
-                break;
-            case ("clean"):
-                this.clean();
-                break;
-            default:
-                return;
-        }
+      if (this.drawLayer) {
+        this.updateFeatureStyles(newProps.features);
+      }
+
+      switch (newProps.drawStatus) {
+        case ("create"):
+            this.addLayer(newProps);
+            break;
+        case ("start"):
+            this.addInteractions(newProps);
+            break;
+        case ("stop"):
+            this.removeDrawInteraction();
+            break;
+        case ("replace"):
+            this.replaceFeatures(newProps);
+            break;
+        case ("clean"):
+            this.clean();
+            break;
+        default:
+            return;
+      }
     },
     render() {
         return null;
     },
-    addLayer: function(newProps) {
-        var source;
-        var vector;
-        this.geojson = new ol.format.GeoJSON();
-
-        // create a layer to draw on
-        source = new ol.source.Vector();
-        vector = new ol.layer.Vector({
-            source: source,
-            zIndex: 1000000,
-            style: new ol.style.Style({
-                fill: new ol.style.Fill({
-                    color: 'rgba(255, 255, 255, 0.2)'
-                }),
-                stroke: new ol.style.Stroke({
-                    color: '#ffcc33',
-                  width: 2
-                }),
-                image: new ol.style.Circle({
-                    radius: 7,
-                    fill: new ol.style.Fill({
-                        color: '#ffcc33'
-                    })
-                })
-            })
-        });
-
-        this.props.map.addLayer(vector);
-
-        if (newProps.features && newProps.features > 0) {
-            for (let i = 0; i < newProps.features.length; i++) {
-                let feature = newProps.features[i];
-                if (!(feature instanceof Object)) {
-                    feature = this.geojson.readFeature(newProps.feature);
-                }
-
-                source.addFeature(feature);
-            }
+    updateFeatureStyles(features) {
+      features.map(f => {
+        if (f.style) {
+          let olFeature = this.toOlFeature(f);
+          if (olFeature) {
+            olFeature.setStyle(this.toOlStyle(f.style, f.selected));
+          }
         }
+      });
+    },
+    addLayer: function(newProps) {
+      this.geojson = new ol.format.GeoJSON();
+      this.drawSource = new ol.source.Vector();
+      this.drawLayer = new ol.layer.Vector({
+        source: this.drawSource,
+        zIndex: 1000000,
+        style: this.toOlStyle(newProps.style)
+      });
 
-        this.drawSource = source;
-        this.drawLayer = vector;
+      this.props.map.addLayer(this.drawLayer);
+
+      if (newProps.features && newProps.features.length > 0) {
+          for (let i = 0; i < newProps.features.length; i++) {
+              let feature = newProps.features[i];
+              if (!(feature instanceof Object)) {
+                  feature = this.geojson.readFeature(newProps.feature);
+              }
+
+              this.drawSource.addFeature(feature);
+          }
+      }
     },
     replaceFeatures: function(newProps) {
         if (!this.drawLayer) {
@@ -123,50 +116,74 @@ const DrawSupport = React.createClass({
             this.addLayer(newProps);
         }
 
-        if (this.drawInteraction) {
-            this.removeDrawInteraction();
-        }
+        this.addDrawInteraction(newProps.drawMethod);
 
-        this.drawInteraction = new ol.interaction.Draw(this.drawPropertiesForGeometryType(newProps.drawMethod));
-
-        this.drawInteraction.on('drawstart', function(evt) {
-            this.sketchFeature = evt.feature;
-            this.selectInteraction.getFeatures().clear();
-            this.selectInteraction.setActive(false);
-        }, this);
-
-        this.drawInteraction.on('drawend', function(evt) {
-            this.sketchFeature = evt.feature;
-            this.sketchFeature.set('id', uuid.v1());
-
-            let feature = this.featureToObject(this.sketchFeature);
-
-            this.props.onEndDrawing(feature, this.props.drawOwner);
-            this.props.onChangeDrawingStatus('stop', this.props.drawMethod, this.props.drawOwner, this.props.features.concat([feature]));
-
-            this.selectInteraction.setActive(true);
-        }, this);
-
-        this.props.map.addInteraction(this.drawInteraction);
-
-        if (!this.selectInteraction) {
-          this.selectInteraction = new ol.interaction.Select({layers: [this.drawLayer]});
-          this.selectInteraction.on('select', function(event) {
-            let selectedFeature = event.selected.length > 0 ? this.featureToObject(event.selected[0]) : null;
-            this.props.onChangeDrawingStatus('select', null, this.props.drawOwner, this.props.features, selectedFeature);
-          }.bind(this));
-          this.props.map.addInteraction(this.selectInteraction);
-        }
+        this.addSelectInteraction();
 
         if (!this.translateInteraction) {
-          this.translateInteraction = new ol.interaction.Translate({features: this.selectInteraction.getFeatures()});
+          this.translateInteraction = new ol.interaction.Translate({
+            features: this.selectInteraction.getFeatures()
+          });
+
           this.props.map.addInteraction(this.translateInteraction);
         }
 
         if (!this.modifyInteraction) {
-          this.modifyInteraction = new ol.interaction.Modify({features: this.selectInteraction.getFeatures()});
+          this.modifyInteraction = new ol.interaction.Modify({
+            features: this.selectInteraction.getFeatures()
+          });
+
           this.props.map.addInteraction(this.modifyInteraction);
         }
+    },
+    addDrawInteraction(drawMethod) {
+      if (this.drawInteraction) {
+          this.removeDrawInteraction();
+      }
+
+      this.drawInteraction = new ol.interaction.Draw(this.drawPropertiesForGeometryType(drawMethod));
+
+      this.drawInteraction.on('drawstart', function(evt) {
+          this.sketchFeature = evt.feature;
+          this.selectInteraction.getFeatures().clear();
+          this.selectInteraction.setActive(false);
+      }, this);
+
+      this.drawInteraction.on('drawend', function(evt) {
+          this.sketchFeature = evt.feature;
+          this.sketchFeature.set('id', uuid.v1());
+
+          let feature = this.fromOlFeature(this.sketchFeature);
+
+          this.props.onEndDrawing(feature, this.props.drawOwner);
+          this.props.onChangeDrawingStatus('stop', this.props.drawMethod, this.props.drawOwner, this.props.features.concat([feature]));
+
+          this.selectInteraction.setActive(true);
+      }, this);
+
+      this.props.map.addInteraction(this.drawInteraction);
+    },
+    addSelectInteraction() {
+      if (!this.selectInteraction) {
+        this.selectInteraction = new ol.interaction.Select({ layers: [this.drawLayer] });
+
+        this.selectInteraction.on('select', function(event) {
+          let features = this.props.features.map(f => {
+            let selected = false;
+
+            let selectedFeatures = this.selectInteraction.getFeatures().getArray();
+            for (var i = 0; i < selectedFeatures.length; i++) {
+              if (f.id === selectedFeatures[i].get('id')) selected = true;
+            }
+
+            return assign({}, f, { selected: selected });
+          });
+
+          this.props.onChangeDrawingStatus('select', null, this.props.drawOwner, features);
+        }.bind(this));
+
+        this.props.map.addInteraction(this.selectInteraction);
+      }
     },
     drawPropertiesForGeometryType(geometryType) {
       let drawBaseProps = {
@@ -220,7 +237,39 @@ const DrawSupport = React.createClass({
 
       return assign({}, drawBaseProps, roiProps);
     },
-    featureToObject: function(feature) {
+    removeInteractions: function() {
+      this.removeDrawInteraction();
+
+      if (this.selectInteraction) {
+        this.props.map.removeInteraction(this.drawInteraction);
+      }
+
+      if (this.modifyInteraction) {
+        this.props.map.removeInteraction(this.modifyInteraction);
+      }
+
+      if (this.translateInteraction) {
+        this.props.map.removeInteraction(this.translateInteraction);
+      }
+    },
+    removeDrawInteraction() {
+      if (this.drawInteraction) {
+        this.props.map.removeInteraction(this.drawInteraction);
+        this.drawInteraction = null;
+        this.sketchFeature = null;
+      }
+    },
+    clean: function() {
+        this.removeInteractions();
+
+        if (this.drawLayer) {
+            this.props.map.removeLayer(this.drawLayer);
+            this.geojson = null;
+            this.drawLayer = null;
+            this.drawSource = null;
+        }
+    },
+    fromOlFeature: function(feature) {
       let geometry = feature.getGeometry(),
           extent = geometry.getExtent(),
           center = ol.extent.getCenter(geometry.getExtent()),
@@ -232,25 +281,71 @@ const DrawSupport = React.createClass({
           extent: extent,
           center: center,
           coordinates: coordinates,
+          style: this.fromOlStyle(feature.getStyle()),
           projection: this.props.map.getView().getProjection().getCode()
       };
     },
-    removeDrawInteraction: function() {
-        if (this.drawInteraction !== null) {
-            this.props.map.removeInteraction(this.drawInteraction);
-            this.drawInteraction = null;
-            this.sketchFeature = null;
-        }
-    },
-    clean: function() {
-        this.removeDrawInteraction();
+    toOlFeature: function(feature) {
+      let features = this.drawSource.getFeatures();
 
-        if (this.drawLayer) {
-            this.props.map.removeLayer(this.drawLayer);
-            this.geojson = null;
-            this.drawLayer = null;
-            this.drawSource = null;
-        }
+      for (var i = 0; i < features.length; i++) {
+        if (feature.id === features[i].get('id')) return features[i];
+      }
+    },
+    fromOlStyle(olStyle) {
+      if (olStyle == null) return {};
+
+      return {
+        fillColor: this.rgbToHex(olStyle.getFill().getColor()),
+        fillTransparency: olStyle.getFill().getColor()[3],
+        strokeColor: olStyle.getStroke().getColor(),
+        strokeWidth: olStyle.getStroke().getWidth()
+      }
+    },
+    toOlStyle: function(style, selected) {
+      let color = style && style.fillColor || [255, 255, 255, 0.2];
+      if (typeof color === 'string') {
+        color = this.hexToRgb(color);
+      }
+
+      if (style && style.fillTransparency) {
+        color[3] = style.fillTransparency;
+      }
+
+      let strokeColor = selected ? '#4a90e2' : style && style.strokeColor ||'#ffcc33'
+      return new ol.style.Style({
+        fill: new ol.style.Fill({
+          color: color
+        }),
+        stroke: new ol.style.Stroke({
+          color: strokeColor,
+          width: style && style.strokeWidth || 2
+        }),
+        image: new ol.style.Circle({
+          radius: 7,
+          fill: new ol.style.Fill({
+              color: '#ffcc33'
+          })
+        })
+      });
+    },
+    //adopted from http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+    hexToRgb(hex) {
+      // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+      var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+      hex = hex.replace(shorthandRegex, function(m, r, g, b) {
+          return r + r + g + g + b + b;
+      });
+
+      var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16)] : null;
+    },
+    componentToHex(c) {
+      var hex = c.toString(16);
+      return hex.length == 1 ? "0" + hex : hex;
+    },
+    rgbToHex(rgb) {
+      return "#" + this.componentToHex(rgb[0]) + this.componentToHex(rgb[1]) + this.componentToHex(rgb[2]);
     }
 });
 
