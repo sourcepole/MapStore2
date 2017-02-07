@@ -12,6 +12,7 @@ const {changeMapView, clickOnMap} = require('../../actions/map');
 const {layerLoading, layerLoad, layerError, invalidLayer} = require('../../actions/layers');
 const {changeMousePosition} = require('../../actions/mousePosition');
 const {changeMeasurementState} = require('../../actions/measurement');
+const {changeSelectionState} = require('../../actions/selection');
 const {changeLocateState, onLocateError} = require('../../actions/locate');
 const {changeDrawingStatus, endDrawing, setCurrentStyle} = require('../../actions/draw');
 const {updateHighlighted} = require('../../actions/highlight');
@@ -64,6 +65,12 @@ module.exports = (mapType, actions) => {
     const HighlightSupport = connect((state) => (
         state.highlight || {}), {updateHighlighted})( components.HighlightFeatureSupport || Empty);
 
+    const SelectionSupport = connect((state) => ({
+            selection: state.selection || {}
+        }), {
+            changeSelectionState
+        })(components.SelectionSupport || Empty);
+
     require('../../components/map/' + mapType + '/plugins/index');
 
     return {
@@ -76,7 +83,8 @@ module.exports = (mapType, actions) => {
             overview: components.Overview || Empty,
             scalebar: components.ScaleBar || Empty,
             draw: DrawSupport,
-            highlight: HighlightSupport
+            highlight: HighlightSupport,
+            selection: SelectionSupport
         }
     };
 };
