@@ -207,5 +207,7 @@ module.exports = {
     revGeocodeInfo,
     hideMapinfoRevGeocode,
     showMapinfoRevGeocode,
-    getVectorInfo
+    getVectorInfo,
+    errorFeatureInfo,
+    loadFeatureInfo
 };
