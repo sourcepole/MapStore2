@@ -162,6 +162,17 @@ const DrawSupport = React.createClass({
       }, this);
 
       this.props.map.addInteraction(this.drawInteraction);
+      this.setDoubleClickZoomEnabled(false);
+    },
+    setDoubleClickZoomEnabled(enabled) {
+      let interactions = this.props.map.getInteractions();
+      for (let i = 0; i < interactions.getLength(); i++) {
+          let interaction = interactions.item(i);
+          if (interaction instanceof ol.interaction.DoubleClickZoom) {
+              interaction.setActive(enabled);
+              break;
+          }
+      }
     },
     addSelectInteraction() {
       if (!this.selectInteraction) {
@@ -257,6 +268,7 @@ const DrawSupport = React.createClass({
         this.props.map.removeInteraction(this.drawInteraction);
         this.drawInteraction = null;
         this.sketchFeature = null;
+        setTimeout(() => this.setDoubleClickZoomEnabled(true), 251);
       }
     },
     clean: function() {
