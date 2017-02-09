@@ -61,14 +61,16 @@ const DrawSupport = React.createClass({
         return null;
     },
     updateFeatureStyles(features) {
-      features.map(f => {
-        if (f.style) {
-          let olFeature = this.toOlFeature(f);
-          if (olFeature) {
-            olFeature.setStyle(this.toOlStyle(f.style, f.selected));
+      if (features && features.length > 0) {
+        features.map(f => {
+          if (f.style) {
+            let olFeature = this.toOlFeature(f);
+            if (olFeature) {
+              olFeature.setStyle(this.toOlStyle(f.style, f.selected));
+            }
           }
-        }
-      });
+        });
+      }
     },
     addLayer: function(newProps) {
       this.geojson = new ol.format.GeoJSON();
@@ -311,11 +313,12 @@ const DrawSupport = React.createClass({
         fillColor: this.rgbToHex(olStyle.getFill().getColor()),
         fillTransparency: olStyle.getFill().getColor()[3],
         strokeColor: olStyle.getStroke().getColor(),
-        strokeWidth: olStyle.getStroke().getWidth()
+        strokeWidth: olStyle.getStroke().getWidth(),
+        text: olStyle.getText().getText()
       }
     },
     toOlStyle: function(style, selected) {
-      let color = style && style.fillColor || [255, 255, 255, 0.2];
+      let color = style && style.fillColor ? style.fillColor : [255, 255, 255, 0.2];
       if (typeof color === 'string') {
         color = this.hexToRgb(color);
       }
@@ -324,20 +327,28 @@ const DrawSupport = React.createClass({
         color[3] = style.fillTransparency;
       }
 
-      let strokeColor = selected ? '#4a90e2' : style && style.strokeColor ||'#ffcc33'
+      let strokeColor = style && style.strokeColor ? style.strokeColor : '#ffcc33';
+      if (selected) {
+        strokeColor = '#4a90e2';
+      }
+
       return new ol.style.Style({
         fill: new ol.style.Fill({
           color: color
         }),
         stroke: new ol.style.Stroke({
           color: strokeColor,
-          width: style && style.strokeWidth || 2
+          width: style && style.strokeWidth ? style.strokeWidth : 2
         }),
         image: new ol.style.Circle({
-          radius: 7,
-          fill: new ol.style.Fill({
-              color: '#ffcc33'
-          })
+          radius: style && style.strokeWidth ? style.strokeWidth : 5,
+          fill: new ol.style.Fill({ color: style && style.strokeColor ? style.strokeColor : '#ffcc33' })
+        }),
+        text: new ol.style.Text({
+          text: style && style.text ? style.text : '',
+          fill: new ol.style.Fill({ color: style && style.strokeColor ? style.strokeColor : '#000' }),
+          stroke: new ol.style.Stroke({ color: '#fff', width: 2 }),
+          font: style && style.fontSize ? style.fontSize + 'px helvetica' : ''
         })
       });
     },
