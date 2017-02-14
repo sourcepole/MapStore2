@@ -25,7 +25,8 @@ const ZoomButton = React.createClass({
         onZoom: React.PropTypes.func,
         tooltip: React.PropTypes.element,
         tooltipPlace: React.PropTypes.string,
-        bsStyle: React.PropTypes.string
+        bsStyle: React.PropTypes.string,
+        style: React.PropTypes.style
     },
     getDefaultProps() {
         return {
@@ -39,7 +40,8 @@ const ZoomButton = React.createClass({
             minZoom: 0,
             maxZoom: 28,
             onZoom: () => {},
-            bsStyle: "default"
+            bsStyle: "default",
+            style: {}
         };
     },
     render() {
@@ -53,6 +55,7 @@ const ZoomButton = React.createClass({
                 tooltipPlace="left"
                 disabled={(this.props.currentZoom + this.props.step > this.props.maxZoom) || (this.props.currentZoom + this.props.step < this.props.minZoom)}
                 bsStyle={this.props.bsStyle}
+                style={this.props.style}
                 >
                 {this.props.glyphicon ? <Glyphicon glyph={this.props.glyphicon}/> : null}
                 {this.props.glyphicon && this.props.text ? "\u00A0" : null}
