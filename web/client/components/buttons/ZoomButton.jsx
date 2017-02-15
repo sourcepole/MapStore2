@@ -26,7 +26,7 @@ const ZoomButton = React.createClass({
         tooltip: React.PropTypes.element,
         tooltipPlace: React.PropTypes.string,
         bsStyle: React.PropTypes.string,
-        style: React.PropTypes.style
+        style: React.PropTypes.object
     },
     getDefaultProps() {
         return {
