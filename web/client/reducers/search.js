@@ -23,7 +23,7 @@ function search(state = null, action) {
         case TEXT_SEARCH_RESULTS_PURGE:
             return assign({}, state, { results: null });
         case TEXT_SEARCH_ADD_MARKER:
-            return assign({}, state, { markerPosition: action.markerPosition });
+            return assign({}, state, { markerPosition: action.markerPosition, markerLabel: action.markerLabel });
         case TEXT_SEARCH_RESET:
             return null;
         default:

@@ -42,10 +42,11 @@ function resetSearch() {
     };
 }
 
-function addMarker(itemPosition) {
+function addMarker(itemPosition, itemText) {
     return {
         type: TEXT_SEARCH_ADD_MARKER,
-        markerPosition: itemPosition
+        markerPosition: itemPosition,
+        markerLabel: itemText
     };
 }
 
