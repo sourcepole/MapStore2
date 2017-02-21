@@ -14,6 +14,7 @@ const TEXT_SEARCH_RESULTS_PURGE = 'TEXT_SEARCH_RESULTS_PURGE';
 const TEXT_SEARCH_RESET = 'TEXT_SEARCH_RESET';
 const TEXT_SEARCH_ADD_MARKER = 'TEXT_SEARCH_ADD_MARKER';
 const TEXT_SEARCH_TEXT_CHANGE = 'TEXT_SEARCH_TEXT_CHANGE';
+const TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE = 'TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE';
 
 function searchResultLoaded(results, append=false) {
     return {
@@ -50,6 +51,13 @@ function addMarker(itemPosition, itemText) {
     };
 }
 
+function setHighlightedFeature(feature) {
+    return {
+        type: TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE,
+        highlightedFeature: feature
+    };
+}
+
 function textSearch(text) {
     return (dispatch) => {
         GeoCodingApi.geocode(text).then((response) => {
@@ -68,10 +76,12 @@ module.exports = {
     TEXT_SEARCH_RESET,
     TEXT_SEARCH_ADD_MARKER,
     TEXT_SEARCH_TEXT_CHANGE,
+    TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE,
     searchResultLoaded,
     textSearch,
     resultsPurge,
     resetSearch,
     addMarker,
-    searchTextChanged
+    searchTextChanged,
+    setHighlightedFeature
 };

@@ -6,7 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var {TEXT_SEARCH_RESULTS_LOADED, TEXT_SEARCH_RESULTS_PURGE, TEXT_SEARCH_RESET, TEXT_SEARCH_ADD_MARKER, TEXT_SEARCH_TEXT_CHANGE} = require('../actions/search');
+var {TEXT_SEARCH_RESULTS_LOADED, TEXT_SEARCH_RESULTS_PURGE, TEXT_SEARCH_RESET, TEXT_SEARCH_ADD_MARKER, TEXT_SEARCH_TEXT_CHANGE, TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE} = require('../actions/search');
 
 const assign = require('object-assign');
 
@@ -24,6 +24,8 @@ function search(state = null, action) {
             return assign({}, state, { results: null });
         case TEXT_SEARCH_ADD_MARKER:
             return assign({}, state, { markerPosition: action.markerPosition, markerLabel: action.markerLabel });
+        case TEXT_SEARCH_SET_HIGHLIGHTED_FEATURE:
+            return assign({}, state, {highlightedFeature: action.highlightedFeature});
         case TEXT_SEARCH_RESET:
             return null;
         default:
