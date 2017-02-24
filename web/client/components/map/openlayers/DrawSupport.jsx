@@ -101,12 +101,13 @@ const DrawSupport = React.createClass({
             this.drawSource.clear();
             this.selectInteraction.getFeatures().clear();
 
-            newProps.features.map((geom) => {
+            newProps.features.map((f) => {
                 let feature = new ol.Feature({
-                    id: geom.id,
-                    geometry: new ol.geom[geom.type](geom.coordinates)
+                    id: f.id,
+                    geometry: new ol.geom[f.type](f.coordinates)
                 });
 
+                feature.setStyle(this.toOlStyle(f.style));
                 this.drawSource.addFeature(feature);
             });
 
@@ -127,6 +128,7 @@ const DrawSupport = React.createClass({
             features: this.selectInteraction.getFeatures()
           });
 
+          this.translateInteraction.on('translateend', this.updateFeatureExtent);
           this.props.map.addInteraction(this.translateInteraction);
         }
 
@@ -137,6 +139,30 @@ const DrawSupport = React.createClass({
 
           this.props.map.addInteraction(this.modifyInteraction);
         }
+    },
+    updateFeatureExtent(event) {
+      let movedFeatures = event.features.getArray(),
+          updatedFeatures = [];
+
+      for (var i = 0; i < this.props.features.length; i++) {
+        let f = this.props.features[i];
+
+        for (var j = 0; j < movedFeatures.length; j++) {
+          let mf = this.fromOlFeature(movedFeatures[j]);
+
+          if (f['id'] === mf['id']) {
+            f['geometry'] = mf['geometry'];
+            f['center'] = mf['ceneter'];
+            f['extent'] = mf['extent'];
+            f['coordinates'] = mf['coordinates'];
+            break;
+          }
+        }
+
+        updatedFeatures.push(f);
+      }
+
+      this.props.onChangeDrawingStatus('replace', this.props.drawMethod, this.props.drawOwner, updatedFeatures);
     },
     addDrawInteraction(drawMethod) {
       if (this.drawInteraction) {
