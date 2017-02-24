@@ -5,7 +5,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var React = require('react/addons');
+var React = require('react');
 var ReactDOM = require('react-dom');
 var OpenlayersMap = require('../Map.jsx');
 var OpenlayersLayer = require('../Layer.jsx');
@@ -114,15 +114,16 @@ describe('OpenlayersMap', () => {
         olMap.getView().setZoom(12);
 
         olMap.on('moveend', () => {
-            expect(spy.calls.length).toEqual(1);
-            expect(spy.calls[0].arguments.length).toEqual(6);
-            expect(normalizeFloat(spy.calls[0].arguments[0].y, 1)).toBe(43.9);
-            expect(normalizeFloat(spy.calls[0].arguments[0].x, 1)).toBe(10.3);
-            expect(spy.calls[0].arguments[1]).toBe(12);
-            expect(spy.calls[0].arguments[2].bounds).toExist();
-            expect(spy.calls[0].arguments[2].crs).toExist();
-            expect(spy.calls[0].arguments[3].height).toExist();
-            expect(spy.calls[0].arguments[3].width).toExist();
+            // The first call is triggered as soon as the map component is mounted, the second one is as a result of setZoom
+            expect(spy.calls.length).toEqual(2);
+            expect(spy.calls[1].arguments.length).toEqual(6);
+            expect(normalizeFloat(spy.calls[1].arguments[0].y, 1)).toBe(43.9);
+            expect(normalizeFloat(spy.calls[1].arguments[0].x, 1)).toBe(10.3);
+            expect(spy.calls[1].arguments[1]).toBe(12);
+            expect(spy.calls[1].arguments[2].bounds).toExist();
+            expect(spy.calls[1].arguments[2].crs).toExist();
+            expect(spy.calls[1].arguments[3].height).toExist();
+            expect(spy.calls[1].arguments[3].width).toExist();
             done();
         });
     });
@@ -145,21 +146,22 @@ describe('OpenlayersMap', () => {
         olMap.getView().setCenter(ol.proj.transform([10, 44], 'EPSG:4326', 'EPSG:3857'));
 
         olMap.on('moveend', () => {
-            expect(spy.calls.length).toEqual(1);
-            expect(spy.calls[0].arguments.length).toEqual(6);
-            expect(normalizeFloat(spy.calls[0].arguments[0].y, 1)).toBe(44);
-            expect(normalizeFloat(spy.calls[0].arguments[0].x, 1)).toBe(10);
-            expect(spy.calls[0].arguments[1]).toBe(11);
-            expect(spy.calls[0].arguments[2].bounds).toExist();
-            expect(spy.calls[0].arguments[2].crs).toExist();
-            expect(spy.calls[0].arguments[3].height).toExist();
-            expect(spy.calls[0].arguments[3].width).toExist();
+            // The first call is triggered as soon as the map component is mounted, the second one is as a result of setCenter
+            expect(spy.calls.length).toEqual(2);
+            expect(spy.calls[1].arguments.length).toEqual(6);
+            expect(normalizeFloat(spy.calls[1].arguments[0].y, 1)).toBe(44);
+            expect(normalizeFloat(spy.calls[1].arguments[0].x, 1)).toBe(10);
+            expect(spy.calls[1].arguments[1]).toBe(11);
+            expect(spy.calls[1].arguments[2].bounds).toExist();
+            expect(spy.calls[1].arguments[2].crs).toExist();
+            expect(spy.calls[1].arguments[3].height).toExist();
+            expect(spy.calls[1].arguments[3].width).toExist();
             done();
         });
     });
 
     it('check if the map changes when receive new props', () => {
-        const map = ReactDOM.render(
+        let map = ReactDOM.render(
             <OpenlayersMap
                 center={{y: 43.9, x: 10.3}}
                 zoom={11.6}
@@ -169,7 +171,13 @@ describe('OpenlayersMap', () => {
 
         const olMap = map.map;
         expect(olMap.getView().getZoom()).toBe(12);
-        map.setProps({zoom: 9.4, center: {y: 44, x: 10}});
+        map = ReactDOM.render(
+            <OpenlayersMap
+                center={{y: 44, x: 10}}
+                zoom={9.4}
+                measurement={{}}
+            />
+        , document.getElementById("map"));
         expect(olMap.getView().getZoom()).toBe(9);
         let center = map.normalizeCenter(olMap.getView().getCenter());
         expect(center[1].toFixed(1)).toBe('44.0');
@@ -177,7 +185,7 @@ describe('OpenlayersMap', () => {
     });
 
     it('check result of "haveResolutionsChanged()" when receiving new props', () => {
-        const map = ReactDOM.render(
+        let map = ReactDOM.render(
             <OpenlayersMap
                 center={{y: 43.9, x: 10.3}}
                 zoom={11.6}
@@ -191,37 +199,65 @@ describe('OpenlayersMap', () => {
             return assign({}, origProps, newProps);
         }
 
-        map.setProps(testProps({mapOptions: undefined}));
+        map = ReactDOM.render(
+            <OpenlayersMap
+                center={{y: 43.9, x: 10.3}}
+                zoom={11.6}
+                measurement={{}}
+                mapOptions={undefined}
+            />
+        , document.getElementById("map"));
+
         expect( map.haveResolutionsChanged(testProps({mapOptions: undefined})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {}}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: []}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10,5,2,1]}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100,50,25]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10, 5, 2, 1]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100, 50, 25]}}})) ).toBe(true);
 
-        map.setProps(testProps({mapOptions: {}}));
+        map = ReactDOM.render(
+            <OpenlayersMap
+                center={{y: 43.9, x: 10.3}}
+                zoom={11.6}
+                measurement={{}}
+                mapOptions={{}}
+            />
+        , document.getElementById("map"));
         expect( map.haveResolutionsChanged(testProps({mapOptions: undefined})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {}}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: []}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10,5,2,1]}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100,50,25]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10, 5, 2, 1]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100, 50, 25]}}})) ).toBe(true);
 
-        map.setProps(testProps({mapOptions: {view: {}}}));
+        map = ReactDOM.render(
+            <OpenlayersMap
+                center={{y: 43.9, x: 10.3}}
+                zoom={11.6}
+                measurement={{}}
+                mapOptions={{view: {}}}
+            />
+        , document.getElementById("map"));
         expect( map.haveResolutionsChanged(testProps({mapOptions: undefined})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {}}})) ).toBe(false);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: []}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10,5,2,1]}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100,50,25]}}})) ).toBe(true);
-
-        map.setProps(testProps({mapOptions: {view: {resolutions: [10,5,2,1]}}}));
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10, 5, 2, 1]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100, 50, 25]}}})) ).toBe(true);
+        map = ReactDOM.render(
+            <OpenlayersMap
+                center={{y: 43.9, x: 10.3}}
+                zoom={11.6}
+                measurement={{}}
+                mapOptions={{view: {resolutions: [10, 5, 2, 1]}}}
+            />
+        , document.getElementById("map"));
         expect( map.haveResolutionsChanged(testProps({mapOptions: undefined})) ).toBe(true);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {}})) ).toBe(true);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {}}})) ).toBe(true);
         expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: []}}})) ).toBe(true);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10,5,2,1]}}})) ).toBe(false);
-        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100,50,25]}}})) ).toBe(true);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [10, 5, 2, 1]}}})) ).toBe(false);
+        expect( map.haveResolutionsChanged(testProps({mapOptions: {view: {resolutions: [100, 50, 25]}}})) ).toBe(true);
     });
 
     it('check if the map has "auto" cursor as default', () => {
@@ -253,11 +289,11 @@ describe('OpenlayersMap', () => {
 
     it('test COMPUTE_BBOX_HOOK hook execution', () => {
         // instanciating the map that will be used to compute the bounfing box
-        const map = ReactDOM.render(<OpenlayersMap id="mymap" center={{y: 43.9, x: 10.3}} zoom={11}/>, document.getElementById("map"));
+        let map = ReactDOM.render(<OpenlayersMap id="mymap" center={{y: 43.9, x: 10.3}} zoom={11}/>, document.getElementById("map"));
         // computing the bounding box for the new center and the new zoom
         const bbox = mapUtils.getBbox({y: 44, x: 10}, 5);
         // update the map with the new center and the new zoom so we can check our computed bouding box
-        map.setProps({zoom: 5, center: {y: 44, x: 10}});
+        map = ReactDOM.render(<OpenlayersMap id="mymap" center={{y: 44, x: 10}} zoom={5}/>, document.getElementById("map"));
         const mapBbox = map.map.getView().calculateExtent(map.map.getSize());
         // check our computed bounding box agains the map computed one
         expect(bbox).toExist();
@@ -272,4 +308,23 @@ describe('OpenlayersMap', () => {
         expect(bbox.crs).toBe("EPSG:3857");
         expect(bbox.rotation).toBe(0);
     });
+
+    it('test GET_PIXEL_FROM_COORDINATES_HOOK/GET_COORDINATES_FROM_PIXEL_HOOK hook registration', () => {
+        mapUtils.registerHook(mapUtils.GET_PIXEL_FROM_COORDINATES_HOOK, undefined);
+        mapUtils.registerHook(mapUtils.GET_COORDINATES_FROM_PIXEL_HOOK, undefined);
+        let getPixelFromCoordinates = mapUtils.getHook(mapUtils.GET_PIXEL_FROM_COORDINATES_HOOK);
+        let getCoordinatesFromPixel = mapUtils.getHook(mapUtils.GET_COORDINATES_FROM_PIXEL_HOOK);
+        expect(getPixelFromCoordinates).toNotExist();
+        expect(getCoordinatesFromPixel).toNotExist();
+
+        const map = ReactDOM.render(<OpenlayersMap id="mymap" center={{y: 0, x: 0}} zoom={11} registerHooks={true}/>,
+                                    document.getElementById("map"));
+        expect(map).toExist();
+
+        getPixelFromCoordinates = mapUtils.getHook(mapUtils.GET_PIXEL_FROM_COORDINATES_HOOK);
+        getCoordinatesFromPixel = mapUtils.getHook(mapUtils.GET_COORDINATES_FROM_PIXEL_HOOK);
+        expect(getPixelFromCoordinates).toExist();
+        expect(getCoordinatesFromPixel).toExist();
+    });
+
 });

@@ -7,7 +7,7 @@
  */
 
 var expect = require('expect');
-var React = require('react/addons');
+var React = require('react');
 var ReactDOM = require('react-dom');
 var L = require('leaflet');
 var MeasurementSupport = require('../MeasurementSupport');
@@ -48,6 +48,22 @@ describe('Leaflet MeasurementSupport', () => {
         expect(cmp).toExist();
     });
 
+    it('test rendering', () => {
+        let myMessages = {message: "message"};
+        let drawLocal = L.drawLocal;
+        L.drawLocal = null;
+        const cmp = ReactDOM.render(
+            <MeasurementSupport
+                messages={myMessages}
+            />
+        , msNode);
+        expect(cmp).toExist();
+        expect(L.drawLocal).toEqual(myMessages);
+        // restoring old value of drawLocal because other test would fail otherwise.
+        // L is global so drawLocal need to be restore to default value
+        L.drawLocal = drawLocal;
+    });
+
     it('test if a new layer is added to the map in order to allow drawing.', () => {
         let map = L.map("map", {
             center: [51.505, -0.09],
@@ -58,7 +74,7 @@ describe('Leaflet MeasurementSupport', () => {
             geomType: null
         };
         let initialLayersNum = getMapLayersNum(map);
-        const cmp = ReactDOM.render(
+        let cmp = ReactDOM.render(
             <MeasurementSupport
                 map={map}
                 projection={proj}
@@ -68,13 +84,15 @@ describe('Leaflet MeasurementSupport', () => {
         , msNode);
         expect(cmp).toExist();
 
-        cmp.setProps({
-            measurement: {
-                geomType: "LineString"
-            }
-        }, () => {
-            expect(getMapLayersNum(map)).toBeGreaterThan(initialLayersNum);
-        });
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{geomType: "LineString"}}
+                changeMeasurementState={() => {}}
+            />
+        , msNode);
+        expect(getMapLayersNum(map)).toBeGreaterThan(initialLayersNum);
     });
 
     it('test if drawing layers will be removed', () => {
@@ -86,7 +104,7 @@ describe('Leaflet MeasurementSupport', () => {
         let measurement = {
             geomType: null
         };
-        const cmp = ReactDOM.render(
+        let cmp = ReactDOM.render(
             <MeasurementSupport
                 map={map}
                 projection={proj}
@@ -97,20 +115,66 @@ describe('Leaflet MeasurementSupport', () => {
         expect(cmp).toExist();
 
         let initialLayersNum = getMapLayersNum(map);
-        cmp.setProps({
-            measurement: {
-                geomType: "Polygon"
-            }
-        }, () => {
-            expect(getMapLayersNum(map)).toBeGreaterThan(initialLayersNum);
-            cmp.setProps({
-                measurement: {
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
+                    geomType: "Polygon"
+                }}
+                changeMeasurementState={() => {}}
+            />
+        , msNode);
+        expect(getMapLayersNum(map)).toBeGreaterThan(initialLayersNum);
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
                     geomType: null
-                }
-            }, () => {
-                expect(getMapLayersNum(map)).toBe(initialLayersNum);
-            });
+                }}
+                changeMeasurementState={() => {}}
+            />
+        , msNode);
+        expect(getMapLayersNum(map)).toBe(initialLayersNum);
+    });
+
+    it('test map onClick handler for POINT tool', () => {
+        let newMeasureState;
+        let map = L.map("map", {
+            center: [51.505, -0.09],
+            zoom: 13
         });
+        let proj = "EPSG:3857";
+        let measurement = {
+            geomType: null
+        };
+        let cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={measurement}
+                changeMeasurementState={(data) => {newMeasureState = data; }}
+            />
+        , msNode);
+        expect(cmp).toExist();
+
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
+                    geomType: "Point"
+                }}
+                changeMeasurementState={(data) => {newMeasureState = data; }}
+            />
+        , msNode);
+        expect(cmp).toExist();
+
+        document.getElementById('map').addEventListener('click', () => {
+            expect(newMeasureState).toExist();
+        });
+        document.getElementById('map').click();
     });
 
     it('test map onClick handler for LINE tool', () => {
@@ -123,7 +187,7 @@ describe('Leaflet MeasurementSupport', () => {
         let measurement = {
             geomType: null
         };
-        const cmp = ReactDOM.render(
+        let cmp = ReactDOM.render(
             <MeasurementSupport
                 map={map}
                 projection={proj}
@@ -133,16 +197,21 @@ describe('Leaflet MeasurementSupport', () => {
         , msNode);
         expect(cmp).toExist();
 
-        cmp.setProps({
-            measurement: {
-                geomType: "LineString"
-            }
-        }, () => {
-            document.getElementById('map').addEventListener('click', () => {
-                expect(newMeasureState).toExist();
-            });
-            document.getElementById('map').click();
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
+                    geomType: "LineString"
+                }}
+                changeMeasurementState={(data) => {newMeasureState = data; }}
+            />
+        , msNode);
+
+        document.getElementById('map').addEventListener('click', () => {
+            expect(newMeasureState).toExist();
         });
+        document.getElementById('map').click();
     });
 
     it('test map onClick handler for AREA tool', () => {
@@ -155,7 +224,7 @@ describe('Leaflet MeasurementSupport', () => {
         let measurement = {
             geomType: null
         };
-        const cmp = ReactDOM.render(
+        let cmp = ReactDOM.render(
             <MeasurementSupport
                 map={map}
                 projection={proj}
@@ -165,16 +234,20 @@ describe('Leaflet MeasurementSupport', () => {
         , msNode);
         expect(cmp).toExist();
 
-        cmp.setProps({
-            measurement: {
-                geomType: "Polygon"
-            }
-        }, () => {
-            document.getElementById('map').addEventListener('click', () => {
-                expect(newMeasureState).toExist();
-            });
-            document.getElementById('map').click();
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
+                    geomType: "Polygon"
+                }}
+                changeMeasurementState={(data) => {newMeasureState = data; }}
+            />
+        , msNode);
+        document.getElementById('map').addEventListener('click', () => {
+            expect(newMeasureState).toExist();
         });
+        document.getElementById('map').click();
     });
 
     it('test map onClick handler for BEARING tool', () => {
@@ -187,7 +260,7 @@ describe('Leaflet MeasurementSupport', () => {
         let measurement = {
             geomType: null
         };
-        const cmp = ReactDOM.render(
+        let cmp = ReactDOM.render(
             <MeasurementSupport
                 map={map}
                 projection={proj}
@@ -197,16 +270,20 @@ describe('Leaflet MeasurementSupport', () => {
         , msNode);
         expect(cmp).toExist();
 
-        cmp.setProps({
-            measurement: {
-                geomType: "Bearing"
-            }
-        }, () => {
-            document.getElementById('map').addEventListener('click', () => {
-                expect(newMeasureState).toExist();
-            });
-            document.getElementById('map').click();
+        cmp = ReactDOM.render(
+            <MeasurementSupport
+                map={map}
+                projection={proj}
+                measurement={{
+                    geomType: "Bearing"
+                }}
+                changeMeasurementState={(data) => {newMeasureState = data; }}
+            />
+        , msNode);
+        document.getElementById('map').addEventListener('click', () => {
+            expect(newMeasureState).toExist();
         });
+        document.getElementById('map').click();
     });
 
 });

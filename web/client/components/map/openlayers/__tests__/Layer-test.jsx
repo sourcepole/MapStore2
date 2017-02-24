@@ -5,7 +5,7 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-var React = require('react/addons');
+var React = require('react');
 var ReactDOM = require('react-dom');
 var ol = require('openlayers');
 var OpenlayersLayer = require('../Layer.jsx');
@@ -14,6 +14,7 @@ var assign = require('object-assign');
 require('../../../../utils/openlayers/Layers');
 require('../plugins/OSMLayer');
 require('../plugins/WMSLayer');
+require('../plugins/WMTSLayer');
 require('../plugins/GoogleLayer');
 require('../plugins/BingLayer');
 require('../plugins/MapQuest');
@@ -70,7 +71,7 @@ describe('Openlayers layer', () => {
         };
         var source = {
             "ptype": "FAKE",
-            "url": "http://demo.geo-solutions.it/geoserver/wms"
+            "url": "http://sample.server/geoserver/wms"
         };
         // create layers
         var layer = ReactDOM.render(
@@ -134,7 +135,7 @@ describe('Openlayers layer', () => {
             "name": "nurc:Arc_Sample",
             "group": "Meteo",
             "format": "image/png",
-            "url": "http://demo.geo-solutions.it/geoserver/wms"
+            "url": "http://sample.server/geoserver/wms"
         };
         // create layers
         var layer = ReactDOM.render(
@@ -148,6 +149,50 @@ describe('Openlayers layer', () => {
         expect(map.getLayers().item(0).getSource().urls.length).toBe(1);
     });
 
+    it('creates a wmts layer for openlayers map', () => {
+        var options = {
+            "type": "wmts",
+            "visibility": true,
+            "name": "nurc:Arc_Sample",
+            "group": "Meteo",
+            "format": "image/png",
+            "tileMatrixSet": "EPSG:900913",
+            "url": "http://sample.server/geoserver/gwc/service/wmts"
+        };
+        // create layers
+        var layer = ReactDOM.render(
+            <OpenlayersLayer type="wmts"
+                 options={options} map={map}/>, document.getElementById("container"));
+
+
+        expect(layer).toExist();
+        // count layers
+        expect(map.getLayers().getLength()).toBe(1);
+        expect(map.getLayers().item(0).getSource().urls.length).toBe(1);
+    });
+
+    it('creates a wmts layer with multiple urls for openlayers map', () => {
+        var options = {
+            "type": "wmts",
+            "visibility": true,
+            "name": "nurc:Arc_Sample",
+            "group": "Meteo",
+            "format": "image/png",
+            "tileMatrixSet": "EPSG:900913",
+            "url": ["http://sample.server/geoserver/gwc/service/wmts", "http://sample.server/geoserver/gwc/service/wmts"]
+        };
+        // create layers
+        var layer = ReactDOM.render(
+            <OpenlayersLayer type="wmts"
+                 options={options} map={map}/>, document.getElementById("container"));
+
+
+        expect(layer).toExist();
+        // count layers
+        expect(map.getLayers().getLength()).toBe(1);
+        expect(map.getLayers().item(0).getSource().urls.length).toBe(2);
+    });
+
     it('creates a wms layer for openlayers map with custom tileSize', () => {
         var options = {
             "type": "wms",
@@ -156,13 +201,12 @@ describe('Openlayers layer', () => {
             "group": "Meteo",
             "format": "image/png",
             "tileSize": 512,
-            "url": "http://demo.geo-solutions.it/geoserver/wms"
+            "url": "http://sample.server/geoserver/wms"
         };
         // create layers
         var layer = ReactDOM.render(
             <OpenlayersLayer type="wms"
                  options={options} map={map}/>, document.getElementById("container"));
-
 
         expect(layer).toExist();
         // count layers
@@ -177,7 +221,28 @@ describe('Openlayers layer', () => {
             "name": "nurc:Arc_Sample",
             "group": "Meteo",
             "format": "image/png",
-            "url": ["http://demo.geo-solutions.it/geoserver/wms", "http://demo.geo-solutions.it/geoserver/wms"]
+            "url": ["http://sample.server/geoserver/wms", "http://sample.server/geoserver/wms"]
+        };
+        // create layers
+        var layer = ReactDOM.render(
+            <OpenlayersLayer type="wms"
+                 options={options} map={map}/>, document.getElementById("container"));
+
+        expect(layer).toExist();
+        // count layers
+        expect(map.getLayers().getLength()).toBe(1);
+        expect(map.getLayers().item(0).getSource().urls.length).toBe(2);
+    });
+
+    it('creates a wms layer with custom origin', () => {
+        var options = {
+            "type": "wms",
+            "visibility": true,
+            "name": "nurc:Arc_Sample",
+            "group": "Meteo",
+            "format": "image/png",
+            "origin": [0, 0],
+            "url": ["http://sample.server/geoserver/wms"]
         };
         // create layers
         var layer = ReactDOM.render(
@@ -188,7 +253,7 @@ describe('Openlayers layer', () => {
         expect(layer).toExist();
         // count layers
         expect(map.getLayers().getLength()).toBe(1);
-        expect(map.getLayers().item(0).getSource().urls.length).toBe(2);
+        expect(map.getLayers().item(0).getSource().getTileGrid().getOrigin()).toEqual([0, 0]);
     });
 
     it('creates a wms layer with proxy  for openlayers map', () => {
@@ -199,7 +264,7 @@ describe('Openlayers layer', () => {
             "group": "Meteo",
             "format": "image/png",
             "forceProxy": true,
-            "url": ["http://demo.geo-solutions.it/geoserver/wms", "http://demo.geo-solutions.it/geoserver/wms"]
+            "url": ["http://sample.server/geoserver/wms", "http://sample.server/geoserver/wms"]
         };
         // create layers
         var layer = ReactDOM.render(
@@ -224,11 +289,11 @@ describe('Openlayers layer', () => {
 
 
         expect(layer).toExist();
-        expect(layer.state.layer).toExist();
+        expect(layer.layer).toExist();
 
-        expect(layer.state.layer.detached).toBe(true);
+        expect(layer.layer.detached).toBe(true);
 
-        layer.state.layer.remove();
+        layer.layer.remove();
     });
 
     it('creates a google layer for openlayers map', () => {
@@ -465,7 +530,8 @@ describe('Openlayers layer', () => {
 
         // if only one layer for google exists, the div will be hidden
         let newOpts = assign({}, options, {visibility: false});
-        layer.setProps({options: newOpts});
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="google" options={newOpts} map={map} mapId="map"/>, document.getElementById("container"));
         expect(div.style.visibility).toBe('hidden');
     });
 
@@ -544,30 +610,30 @@ describe('Openlayers layer', () => {
             <OpenlayersLayer type="bing" options={options} map={map}/>, document.getElementById("container"));
 
         expect(layer).toExist();
-        expect(layer.state.layer).toExist();
+        expect(layer.layer).toExist();
         // count layers
         expect(map.getLayers().getLength()).toBe(1);
-        expect(layer.state.layer.getVisible()).toBe(true);
-        layer.setProps({options: assign({}, {
-            "type": "bing",
-            "title": "Bing Aerial",
-            "name": "Aerial",
-            "group": "background"
-        }, {
-            "visibility": true
-        })});
+        expect(layer.layer.getVisible()).toBe(true);
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="bing" options={{
+                "type": "bing",
+                "title": "Bing Aerial",
+                "name": "Aerial",
+                "group": "background",
+                "visibility": true
+            }} map={map}/>, document.getElementById("container"));
         expect(map.getLayers().getLength()).toBe(1);
-        expect(layer.state.layer.getVisible()).toBe(true);
-        layer.setProps({options: assign({}, {
-            "type": "bing",
-            "title": "Bing Aerial",
-            "name": "Aerial",
-            "group": "background"
-        }, {
-            "visibility": false
-        })});
+        expect(layer.layer.getVisible()).toBe(true);
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="bing" options={{
+                "type": "bing",
+                "title": "Bing Aerial",
+                "name": "Aerial",
+                "group": "background",
+                "visibility": false
+            }} map={map}/>, document.getElementById("container"));
         expect(map.getLayers().getLength()).toBe(1);
-        expect(layer.state.layer.getVisible()).toBe(false);
+        expect(layer.layer.getVisible()).toBe(false);
 
     });
 
@@ -596,7 +662,7 @@ describe('Openlayers layer', () => {
             "group": "Meteo",
             "format": "image/png",
             "opacity": 1.0,
-            "url": "http://demo.geo-solutions.it/geoserver/wms"
+            "url": "http://sample.server/geoserver/wms"
         };
         // create layers
         var layer = ReactDOM.render(
@@ -607,10 +673,13 @@ describe('Openlayers layer', () => {
         // count layers
         expect(map.getLayers().getLength()).toBe(1);
 
-        expect(layer.state.layer.getOpacity()).toBe(1.0);
+        expect(layer.layer.getOpacity()).toBe(1.0);
 
-        layer.setProps({options: {opacity: 0.5}, position: 0});
-        expect(layer.state.layer.getOpacity()).toBe(0.5);
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="wms"
+                 options={assign({}, options, {opacity: 0.5})} map={map}/>, document.getElementById("container"));
+
+        expect(layer.layer.getOpacity()).toBe(0.5);
     });
 
     it('respects layer ordering', () => {
@@ -621,7 +690,7 @@ describe('Openlayers layer', () => {
             "group": "Meteo",
             "format": "image/png",
             "opacity": 1.0,
-            "url": "http://demo.geo-solutions.it/geoserver/wms"
+            "url": "http://sample.server/geoserver/wms"
         };
         // create layers
         var layer = ReactDOM.render(
@@ -632,10 +701,12 @@ describe('Openlayers layer', () => {
         // count layers
         expect(map.getLayers().getLength()).toBe(1);
 
-        expect(layer.state.layer.getZIndex()).toBe(10);
+        expect(layer.layer.getZIndex()).toBe(10);
 
-        layer.setProps({position: 2});
-        expect(layer.state.layer.getZIndex()).toBe(2);
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="wms" position={2}
+                 options={options} map={map}/>, document.getElementById("container"));
+        expect(layer.layer.getZIndex()).toBe(2);
     });
 
     it('changes wms params', () => {
@@ -646,7 +717,7 @@ describe('Openlayers layer', () => {
             "group": "Meteo",
             "format": "image/png",
             "opacity": 1.0,
-            "url": "http://demo.geo-solutions.it/geoserver/wms",
+            "url": "http://sample.server/geoserver/wms",
             "params": {
                 "cql_filter": "INCLUDE"
             }
@@ -660,11 +731,13 @@ describe('Openlayers layer', () => {
         // count layers
         expect(map.getLayers().getLength()).toBe(1);
 
-        expect(layer.state.layer.getSource()).toExist();
-        expect(layer.state.layer.getSource().getParams()).toExist();
-        expect(layer.state.layer.getSource().getParams().cql_filter).toBe("INCLUDE");
+        expect(layer.layer.getSource()).toExist();
+        expect(layer.layer.getSource().getParams()).toExist();
+        expect(layer.layer.getSource().getParams().cql_filter).toBe("INCLUDE");
 
-        layer.setProps({options: {params: {cql_filter: "EXCLUDE"}}});
-        expect(layer.state.layer.getSource().getParams().cql_filter).toBe("EXCLUDE");
+        layer = ReactDOM.render(
+            <OpenlayersLayer type="wms" observables={["cql_filter"]}
+                 options={assign({}, options, {params: {cql_filter: "EXCLUDE"}})} map={map}/>, document.getElementById("container"));
+        expect(layer.layer.getSource().getParams().cql_filter).toBe("EXCLUDE");
     });
 });
