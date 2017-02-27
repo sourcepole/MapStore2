@@ -48,7 +48,6 @@ let CRSSelector = React.createClass({
                     id={this.props.id}
                     value={this.props.crs}
                     onChange={this.launchNewCRSAction}
-                    bsSize="small"
                     {...this.props.inputProps}>
                     {list}
                 </select>);
@@ -59,7 +58,6 @@ let CRSSelector = React.createClass({
                   id={this.props.id}
                   value={this.props.crs}
                   onChange={this.launchNewCRSAction}
-                  bsSize="small"
                   {...this.props.inputProps}>
                   {list}
               </Input>);

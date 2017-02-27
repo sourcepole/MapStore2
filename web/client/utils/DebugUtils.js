@@ -8,7 +8,7 @@
 var url = require('url');
 
 var {createStore, compose, applyMiddleware} = require('redux');
-var thunkMiddleware = require('redux-thunk');
+var thunkMiddleware = require('redux-thunk').default;
 
 
 const urlQuery = url.parse(window.location.href, true).query;
@@ -30,7 +30,6 @@ var DebugUtils = {
             let middlewares = (userMiddlewares || []).concat([immutable, thunkMiddleware, logger]);
             const {persistState} = require('redux-devtools');
             const DevTools = require('../components/development/DevTools');
-
             finalCreateStore = compose(
               applyMiddleware.apply(null, middlewares),
             window.devToolsExtension ? window.devToolsExtension() : DevTools.instrument(),
