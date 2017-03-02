@@ -68,7 +68,7 @@ var Locate = React.createClass({
         follow: true,// follow with zoom and pan the user's location
         remainActive: true,
         metric: true,
-        stopFollowingOnDrag: true,
+        stopFollowingOnDrag: false,
         keepCurrentZoomLevel: false,
         locateOptions: {
             maximumAge: 2000,
