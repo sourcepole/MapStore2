@@ -40,7 +40,8 @@ function mapConfig(state = {}, action) {
                 // add or update mapOptions.view.resolutions
                 let mapOptions = assign({}, state.mapOptions);
                 mapOptions.view = assign({}, mapOptions.view, {
-                    resolutions: resolutions
+                    resolutions: resolutions,
+                    scales: action.scales
                 });
                 return assign({}, state, {
                     mapOptions: mapOptions
