@@ -9,7 +9,15 @@ var Proj4js = require('proj4');
 var assign = require('object-assign');
 var {isArray, flattenDeep, chunk} = require('lodash');
 
+let crsLabels = {
+    "EPSG:4326": "WGS 84",
+    "EPSG:3857": "WGS 84 / Pseudo Mercator"
+};
+
 var CoordinatesUtils = {
+    setCrsLabels(labels) {
+        assign(crsLabels, labels)
+    },
     getUnits: function(projection) {
         const proj = new Proj4js.Proj(projection);
         return proj.units || 'degrees';
@@ -94,7 +102,7 @@ var CoordinatesUtils = {
         let crsList = {};
         for (let a in Proj4js.defs) {
             if (Proj4js.defs.hasOwnProperty(a)) {
-                crsList[a] = {label: a};
+                crsList[a] = {label: crsLabels[a] || a};
             }
         }
         return crsList;
