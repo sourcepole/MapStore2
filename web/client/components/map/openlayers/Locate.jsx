@@ -69,10 +69,10 @@ var Locate = React.createClass({
         remainActive: true,
         metric: true,
         stopFollowingOnDrag: false,
-        keepCurrentZoomLevel: false,
+        keepCurrentZoomLevel: true,
         locateOptions: {
             maximumAge: 2000,
-            enableHighAccuracy: false,
+            enableHighAccuracy: true,
             timeout: 10000,
             maxZoom: 18
         }
