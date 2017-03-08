@@ -55,6 +55,7 @@ Layers.registerType('wms', {
                 zIndex: options.zIndex,
                 source: new ol.source.ImageWMS({
                     url: urls[0],
+                    serverType: 'qgis',
                     params: queryParameters,
                     ratio: options.ratio
                 })
@@ -67,6 +68,7 @@ Layers.registerType('wms', {
             source: new ol.source.TileWMS(objectAssign({
               urls: urls,
               params: queryParameters,
+              serverType: 'qgis',
               tileGrid: options.tileSize ? ol.tilegrid.createXYZ({
                   extent: ol.proj.get(CoordinatesUtils.normalizeSRS(options.srs || 'EPSG:3857', options.allowedSRS)).getExtent(),
                   tileSize: options.tileSize
