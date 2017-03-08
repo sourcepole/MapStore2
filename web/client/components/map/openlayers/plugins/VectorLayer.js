@@ -147,7 +147,6 @@ Layers.registerType('vector', {
 
             style = new ol.style.Style(style);
         }
-
         return new ol.layer.Vector({
             msId: options.id,
             source: source,
@@ -162,6 +161,9 @@ Layers.registerType('vector', {
             layer.getSource().forEachFeature((f) => {
                 f.getGeometry().transform(oldCrs, newCrs);
             });
+        }
+        if(!newOptions.overrideOLStyle) {
+            layer.setStyle((feature) => styleFunction(feature, newOptions));
         }
     },
     render: () => {
