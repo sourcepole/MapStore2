@@ -49,7 +49,8 @@ module.exports = (mapType, actions) => {
     })(components.MeasurementSupport || Empty);
 
     const Locate = connect((state) => ({
-        status: state.locate && state.locate.state
+        status: state.locate && state.locate.state,
+        messages: state.locale && state.locale.messages ? state.locale.messages.locate : undefined
     }), {
         changeLocateState,
         onLocateError

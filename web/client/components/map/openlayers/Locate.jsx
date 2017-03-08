@@ -29,6 +29,7 @@ var Locate = React.createClass({
     componentDidMount() {
         if (this.props.map) {
             this.locate = new OlLocate(this.props.map, this.defaultOpt);
+            this.locate.setStrings(this.props.messages);
             this.locate.options.onLocationError = this.onLocationError;
             this.locate.on("propertychange", (e) => {this.onStateChange(e.target.get(e.key)); });
             this.configureLocate(this.props.status);
