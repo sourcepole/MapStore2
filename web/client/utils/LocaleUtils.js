@@ -13,8 +13,9 @@ const en = require('react-intl/locale-data/en');
 const it = require('react-intl/locale-data/it');
 const fr = require('react-intl/locale-data/fr');
 const de = require('react-intl/locale-data/de');
+const sv = require('react-intl/locale-data/sv');
 
-addLocaleData([...en, ...it, ...fr, ...de]);
+addLocaleData([...en, ...it, ...fr, ...de, ...sv]);
 
 let supportedLocales = {
      "it": {
@@ -28,16 +29,21 @@ let supportedLocales = {
      "fr": {
        code: "fr-FR",
        description: "Français"
+     },
+     "sv": {
+       code: "sv-SE",
+       description: "Svenska"
      }
 };
 
 const LocaleUtils = {
     ensureIntl(callback) {
-        require.ensure(['intl', 'intl/locale-data/jsonp/en.js', 'intl/locale-data/jsonp/it.js', 'intl/locale-data/jsonp/fr.js'], (require) => {
+        require.ensure(['intl', 'intl/locale-data/jsonp/en.js', 'intl/locale-data/jsonp/it.js', 'intl/locale-data/jsonp/fr.js', 'intl/locale-data/jsonp/sv.js'], (require) => {
             global.Intl = require('intl');
             require('intl/locale-data/jsonp/en.js');
             require('intl/locale-data/jsonp/it.js');
             require('intl/locale-data/jsonp/fr.js');
+            require('intl/locale-data/jsonp/sv.js');
             if (callback) {
                 callback();
             }
