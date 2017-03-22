@@ -9,13 +9,6 @@ const url = require('url');
 
 const {addLocaleData} = require('react-intl');
 
-const en = require('react-intl/locale-data/en');
-const it = require('react-intl/locale-data/it');
-const fr = require('react-intl/locale-data/fr');
-const de = require('react-intl/locale-data/de');
-
-addLocaleData([...en, ...it, ...fr, ...de]);
-
 let supportedLocales = {
      "it": {
          code: "it-IT",
@@ -45,6 +38,9 @@ const LocaleUtils = {
     },
     setSupportedLocales: function(locales) {
         supportedLocales = locales;
+        let localeData = [];
+        Object.keys(locales).map(key => { localeData.push(...locales[key].localeData); });
+        addLocaleData(localeData);
     },
     normalizeLocaleCode: function(localeCode) {
         var retval;
