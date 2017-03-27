@@ -37,6 +37,10 @@ const DrawSupport = React.createClass({
         this.updateFeatureStyles(newProps.features);
       }
 
+      if (!newProps.drawStatus) {
+        this.selectInteraction.getFeatures().clear();
+      }
+
       switch (newProps.drawStatus) {
         case ("create"):
             this.addLayer(newProps);
@@ -87,7 +91,7 @@ const DrawSupport = React.createClass({
           for (let i = 0; i < newProps.features.length; i++) {
               let feature = newProps.features[i];
               if (!(feature instanceof Object)) {
-                  feature = this.geojson.readFeature(newProps.feature);
+                  feature = this.geojson.readFeature(feature);
               }
 
               this.drawSource.addFeature(feature);
@@ -96,23 +100,23 @@ const DrawSupport = React.createClass({
     },
     replaceFeatures: function(newProps) {
         if (!this.drawLayer) {
-            this.addLayer(newProps);
-        } else {
-            this.drawSource.clear();
-            this.selectInteraction.getFeatures().clear();
+          this.addLayer(newProps);
+        }
 
-            newProps.features.map((f) => {
-                let feature = new ol.Feature({
-                    id: f.id,
-                    geometry: new ol.geom[f.type](f.coordinates)
-                });
+        this.drawSource.clear();
+        this.selectInteraction.getFeatures().clear();
 
-                feature.setStyle(this.toOlStyle(f.style));
-                this.drawSource.addFeature(feature);
+        newProps.features.map((f) => {
+            let feature = new ol.Feature({
+                id: f.id,
+                geometry: new ol.geom[f.type](f.coordinates)
             });
 
-            this.drawSource.changed();
-        }
+            feature.setStyle(this.toOlStyle(f.style));
+            this.drawSource.addFeature(feature);
+        });
+
+        this.drawSource.changed();
     },
     addInteractions: function(newProps) {
         if (!this.drawLayer) {
@@ -123,22 +127,27 @@ const DrawSupport = React.createClass({
 
         this.addSelectInteraction();
 
-        if (!this.translateInteraction) {
-          this.translateInteraction = new ol.interaction.Translate({
-            features: this.selectInteraction.getFeatures()
-          });
-
-          this.translateInteraction.on('translateend', this.updateFeatureExtent);
-          this.props.map.addInteraction(this.translateInteraction);
+        if (this.translateInteraction) {
+          this.props.map.removeInteraction(this.translateInteraction);
         }
 
-        if (!this.modifyInteraction) {
-          this.modifyInteraction = new ol.interaction.Modify({
-            features: this.selectInteraction.getFeatures()
-          });
+        this.translateInteraction = new ol.interaction.Translate({
+          features: this.selectInteraction.getFeatures()
+        });
 
-          this.props.map.addInteraction(this.modifyInteraction);
+        this.translateInteraction.on('translateend', this.updateFeatureExtent);
+        this.props.map.addInteraction(this.translateInteraction);
+
+
+        if (this.modifyInteraction) {
+          this.props.map.removeInteraction(this.modifyInteraction);
         }
+
+        this.modifyInteraction = new ol.interaction.Modify({
+          features: this.selectInteraction.getFeatures()
+        });
+
+        this.props.map.addInteraction(this.modifyInteraction);
     },
     updateFeatureExtent(event) {
       let movedFeatures = event.features.getArray(),
@@ -203,26 +212,28 @@ const DrawSupport = React.createClass({
       }
     },
     addSelectInteraction() {
-      if (!this.selectInteraction) {
-        this.selectInteraction = new ol.interaction.Select({ layers: [this.drawLayer] });
-
-        this.selectInteraction.on('select', function(event) {
-          let features = this.props.features.map(f => {
-            let selected = false;
-
-            let selectedFeatures = this.selectInteraction.getFeatures().getArray();
-            for (var i = 0; i < selectedFeatures.length; i++) {
-              if (f.id === selectedFeatures[i].get('id')) selected = true;
-            }
-
-            return assign({}, f, { selected: selected });
-          });
-
-          this.props.onChangeDrawingStatus('select', null, this.props.drawOwner, features);
-        }.bind(this));
-
-        this.props.map.addInteraction(this.selectInteraction);
+      if (this.selectInteraction) {
+        this.props.map.removeInteraction(this.selectInteraction);
       }
+
+      this.selectInteraction = new ol.interaction.Select({ layers: [this.drawLayer] });
+
+      this.selectInteraction.on('select', function(event) {
+        let features = this.props.features.map(f => {
+          let selected = false;
+
+          let selectedFeatures = this.selectInteraction.getFeatures().getArray();
+          for (var i = 0; i < selectedFeatures.length; i++) {
+            if (f.id === selectedFeatures[i].get('id')) selected = true;
+          }
+
+          return assign({}, f, { selected: selected });
+        });
+
+        this.props.onChangeDrawingStatus('select', null, this.props.drawOwner, features);
+      }.bind(this));
+
+      this.props.map.addInteraction(this.selectInteraction);
     },
     drawPropertiesForGeometryType(geometryType) {
       let drawBaseProps = {
