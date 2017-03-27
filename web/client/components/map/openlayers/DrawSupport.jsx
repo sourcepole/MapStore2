@@ -37,7 +37,7 @@ const DrawSupport = React.createClass({
         this.updateFeatureStyles(newProps.features);
       }
 
-      if (!newProps.drawStatus) {
+      if (!newProps.drawStatus && this.selectInteraction) {
         this.selectInteraction.getFeatures().clear();
       }
 
