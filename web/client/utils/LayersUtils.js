@@ -45,8 +45,9 @@ var LayersUtils = {
     },
 
     reorder: (groups, allLayers) => {
+        // Background layers before others
         return allLayers.filter((layer) => layer.group === 'background')
-            .concat(initialReorderLayers(groups, allLayers));
+            .concat(allLayers.filter((layer) => layer.group !== 'background'));
     },
     denormalizeGroups: (allLayers, groups) => {
 
@@ -86,8 +87,11 @@ var LayersUtils = {
     },
 
     sortLayers: (groups, allLayers) => {
+        // Background layers before others
         return allLayers.filter((layer) => layer.group === 'background')
-            .concat(reorderLayers(groups, allLayers));
+            .concat(allLayers.filter((layer) => layer.group !== 'background'));
+        // return allLayers.filter((layer) => layer.group === 'background')
+            // .concat(reorderLayers(groups, allLayers));
     },
     toggleByType: (type, toggleFun) => {
         return (node, status) => {
