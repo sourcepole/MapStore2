@@ -129,27 +129,40 @@ const OpenlayersLayer = React.createClass({
     addLayer(layer, options) {
         if (this.isValid(layer)) {
             this.props.map.addLayer(layer);
-            layer.getSource().on('tileloadstart', () => {
-                if (this.tilestoload === 0) {
+            if (options.singleTile) {
+                layer.getSource().on('imageloadstart', () => {
                     this.props.onLayerLoading(options.id);
-                    this.tilestoload++;
-                } else {
-                    this.tilestoload++;
-                }
-            });
-            layer.getSource().on('tileloadend', () => {
-                this.tilestoload--;
-                if (this.tilestoload === 0) {
+                });
+                layer.getSource().on('imageloadend', () => {
                     this.props.onLayerLoad(options.id);
-                }
-            });
-            layer.getSource().on('tileloaderror', (event) => {
-                this.tilestoload--;
-                this.props.onLayerError(options.id);
-                if (this.tilestoload === 0) {
+                });
+                layer.getSource().on('imageloaderror', (event) => {
                     this.props.onLayerLoad(options.id, {error: event});
-                }
-            });
+                });
+            }
+            else {
+                layer.getSource().on('tileloadstart', () => {
+                    if (this.tilestoload === 0) {
+                        this.props.onLayerLoading(options.id);
+                        this.tilestoload++;
+                    } else {
+                        this.tilestoload++;
+                    }
+                });
+                layer.getSource().on('tileloadend', () => {
+                    this.tilestoload--;
+                    if (this.tilestoload === 0) {
+                        this.props.onLayerLoad(options.id);
+                    }
+                });
+                layer.getSource().on('tileloaderror', (event) => {
+                    this.tilestoload--;
+                    this.props.onLayerError(options.id);
+                    if (this.tilestoload === 0) {
+                        this.props.onLayerLoad(options.id, {error: event});
+                    }
+                });
+            }
         }
     },
     isValid(layer) {
