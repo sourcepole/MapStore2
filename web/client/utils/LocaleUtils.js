@@ -6,6 +6,7 @@
  * LICENSE file in the root directory of this source tree.
  */
 const url = require('url');
+const ConfigUtils = require('./ConfigUtils');
 
 const {addLocaleData} = require('react-intl');
 
@@ -62,7 +63,7 @@ const LocaleUtils = {
     },
     getLocale: function(query) {
         let locale = supportedLocales[
-            LocaleUtils.normalizeLocaleCode(query.locale || (navigator ? navigator.language || navigator.browserLanguage : "en"))
+            LocaleUtils.normalizeLocaleCode(query.locale || ConfigUtils.getConfigProp("locale") || (navigator ? navigator.language || navigator.browserLanguage : "en"))
         ];
         return locale ? locale.code : "en-US";
     },
