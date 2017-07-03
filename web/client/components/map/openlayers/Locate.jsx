@@ -66,7 +66,7 @@ var Locate = React.createClass({
         return null;
     },
     defaultOpt: {
-        follow: true,// follow with zoom and pan the user's location
+        follow: false,// follow with zoom and pan the user's location
         remainActive: true,
         metric: true,
         stopFollowingOnDrag: false,
