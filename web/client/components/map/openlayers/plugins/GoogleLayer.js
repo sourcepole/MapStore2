@@ -49,7 +49,7 @@ Layers.registerType('google', {
         };
         let setZoom = function() {
             if (mapContainer.style.visibility !== 'hidden') {
-                gmaps[mapId].setZoom(map.getView().getZoom());
+                gmaps[mapId].setZoom(Math.round(map.getView().getZoom()));
             }
         };
 
