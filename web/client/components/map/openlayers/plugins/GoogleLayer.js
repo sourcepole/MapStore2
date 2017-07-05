@@ -102,7 +102,7 @@ Layers.registerType('google', {
 
         let setRotation = function() {
             if (mapContainer.style.visibility !== 'hidden') {
-                const rotation = view.getRotation() * 180 / Math.PI;
+                const rotation = map.getView().getRotation() * 180 / Math.PI;
 
                 mapContainer.style.transform = "rotate(" + rotation + "deg)";
                 google.maps.event.trigger(gmaps[mapId], "resize");
