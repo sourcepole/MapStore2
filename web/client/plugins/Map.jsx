@@ -29,7 +29,8 @@ const MapPlugin = React.createClass({
         tools: React.PropTypes.array,
         options: React.PropTypes.object,
         toolsOptions: React.PropTypes.object,
-        actions: React.PropTypes.object
+        actions: React.PropTypes.object,
+        projection: React.PropTypes.string
     },
     getDefaultProps() {
         return {
@@ -105,6 +106,7 @@ const MapPlugin = React.createClass({
         if (this.props.map) {
             return (
                 <plugins.Map id="map"
+                    projection={this.props.projection}
                     {...this.props.options}
                     {...this.props.map}
                     zoomControl={this.props.zoomControl}>
