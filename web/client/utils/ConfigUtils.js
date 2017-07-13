@@ -330,21 +330,6 @@ var ConfigUtils = {
     },
     getConfigProp: function(prop) {
         return defaultConfig[prop];
-    },
-        getMapDefaultConfiguration: function(){
-        var mapDefaultConfig = null;
-        if(ConfigUtils.getConfigProp('plugins') && ConfigUtils.getConfigProp('plugins')['desktop']){
-         var desktopDefaultConfig = ConfigUtils.getConfigProp('plugins')['desktop'];
-            
-            for (var i=0; i< desktopDefaultConfig.length;i++){
-              if(desktopDefaultConfig[i].name === 'Map'){
-                mapDefaultConfig = desktopDefaultConfig[i].cfg;
-                break;
-              }
-            }                 
-        }
-
-     return mapDefaultConfig;   
     }
 
 };
