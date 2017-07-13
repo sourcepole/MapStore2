@@ -331,6 +331,7 @@ var ConfigUtils = {
     getConfigProp: function(prop) {
         return defaultConfig[prop];
     }
+
 };
 
 module.exports = ConfigUtils;
