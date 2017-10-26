@@ -161,7 +161,7 @@ const MapInfoUtils = {
         return {
             request: {
                 id: layer.id,
-                layers: layer.name,
+                layers: queryLayers,
                 query_layers: queryLayers,
                 styles: layer.style,
                 x: ((widthBBox % 2) === 1) ? Math.ceil(widthBBox / 2) : widthBBox / 2,
